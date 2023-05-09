@@ -21,7 +21,7 @@ class Game:
         self.verbose = verbose
     
     def execute_next_round(self, players, options: RoundOptions = RoundOptions.default()) -> Round: 
-        self.current_round = Round(self.dealer, players, options) 
+        self.current_round = Round(self, players, options) 
         
         self._print('')
         self._print('round initiated')
@@ -48,8 +48,7 @@ class Game:
             
         self._print(f'round results: {self.current_round.results}')
         return self.current_round
-        
-        
+         
     def reset_cards(self): 
         print('d')
         

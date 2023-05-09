@@ -8,8 +8,8 @@ from classes.Deck import Deck
 from classes.Player import Player
 
 class Dealer(Player): 
-    def __init__(self, balance: int, num_decks: int = 1): 
-        super().__init__(balance)
+    def __init__(self, balance: int, decision_model, num_decks: int = 1): 
+        super().__init__(balance, decision_model)
         self.deck = Deck(num_decks)
         
     def deal_self(self, num: int = 1): 
@@ -32,9 +32,9 @@ class Dealer(Player):
         self.deck.shuffle()
     
     #TODO: can this be removed (it's inherited)
-    def decide_hit_or_stand(self, round) -> bool: 
-        return self.decision_model.decide_hit_or_stand(self, round)
+    def decide_hit_or_stand(self, game) -> bool: 
+        return self.decision_model.decide_hit_or_stand(self, game)
     
     def top_up_deck(self): 
-        self.deck.top_up_deck() 
+        self.deck.top_up_deck()
         

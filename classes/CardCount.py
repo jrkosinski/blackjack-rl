@@ -13,7 +13,7 @@ class CardCount:
         num_cards_dealt = 0
         for i in range (1, 11): 
             card_counts[i] = (4 * self.num_decks)
-            num_cards_dealt += cards_dealt[i]
+            num_cards_dealt += self.cards_dealt[i]
         card_counts[10] = (16 * self.num_decks)
             
         for i in range(1, 11): 
@@ -29,8 +29,8 @@ class CardCount:
     def probability_of_n_or_over(self, card_value: int) -> float: 
         prob = 0.0
         for i in range(card_value, 11): 
-            p = probability_of_getting(self.cards_dealt, i)
-            print(f'prob of {i}: {p}')
+            p = self.probability_of_getting(i)
+            #print(f'prob of {i}: {p}')
             prob += p
         return prob
         

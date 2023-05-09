@@ -21,16 +21,17 @@ class RoundOptions:
         return RoundOptions()
     
 class Round: 
-    def __init__(self, dealer: Dealer, players, options: RoundOptions.default()): 
+    def __init__(self, game, players, options: RoundOptions.default()): 
         self.winner = None
         self.options = options
         self.players = players
         self.bets = list()
-        self.dealer = dealer
+        self.dealer = game.dealer
+        self.game = game
         for i in range(len(players)): 
             self.bets.append(0)
             
-        self.card_count = CardCount(dealer.deck.num_decks)
+        self.card_count = CardCount(self.dealer.deck.num_decks)
             
     def execute_round(self): 
         # request bets
@@ -47,7 +48,7 @@ class Round:
         
     def request_bets(self): 
         for i, player in enumerate(self.players):
-            bet = player.decide_bet_amount(self)
+            bet = player.decide_bet_amount(self.game)
             if (bet > 0): 
                 self.bets[i] = bet
                 player.balance -= bet
@@ -82,7 +83,7 @@ class Round:
             
     def do_player_turn(self, player: Player): 
         while not player.is_bust and not player.has_21: 
-            action = player.decide_hit_or_stand(self)
+            action = player.decide_hit_or_stand(self.game)
             if (action): 
                 self.card_count.append(self.dealer.deal_player(player))
             else: 

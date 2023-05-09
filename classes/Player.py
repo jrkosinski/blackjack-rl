@@ -6,11 +6,18 @@ from classes.Card import Card
 from classes.Deck import Deck 
 
 class Player: 
-    def __init__(self, balance: int, decision_model = None): 
+    def __init__(self, balance: int, decision_model = None):  #TODO: should not allow None 
         self.hand = list()
         self.balance = balance 
         self.bet = 0
         self.decision_model = decision_model
+    
+    @property
+    def has_ace(self) -> bool: 
+        for i in range(len(self.hand)): 
+            if (self.hand[i].is_ace): 
+                return True
+        return False
         
     @property
     def has_blackjack(self) -> bool: 
@@ -50,11 +57,11 @@ class Player:
             
         return total
     
-    def decide_bet_amount(self, round) -> int: 
-        return self.decision_model.decide_bet_amount(self, round)
+    def decide_bet_amount(self, game) -> int: 
+        return self.decision_model.decide_bet_amount(self, game)
     
-    def decide_hit_or_stand(self, round) -> bool: 
-        return self.decision_model.decide_hit_or_stand(self, round)
+    def decide_hit_or_stand(self, game) -> bool: 
+        return self.decision_model.decide_hit_or_stand(self, game)
     
     def reset_hand(self): 
         self.hand = list()
