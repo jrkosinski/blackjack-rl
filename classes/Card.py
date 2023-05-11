@@ -81,7 +81,8 @@ class Card:
     
     def __str__(self) -> str:
         return f"{self.suit} {self.value}"
-        
+
+#TODO: (LOW) test this 
 def get_card(s: str) -> Card: 
     ssuit = s[0:1]
     sval = s[1:]

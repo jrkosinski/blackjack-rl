@@ -3,7 +3,7 @@ import random
 from classes.Card import CardSuit
 from classes.Card import CardValue
 from classes.Card import Card
-from classes.Deck import Deck 
+from classes.Shoe import Shoe 
 
 class Player: 
     def __init__(self, balance: int, decision_model = None):  #TODO: should not allow None 

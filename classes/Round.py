@@ -3,7 +3,7 @@ import random
 from classes.Card import CardSuit
 from classes.Card import CardValue
 from classes.Card import Card
-from classes.Deck import Deck 
+from classes.Shoe import Shoe 
 
 from classes.CardCount import CardCount
 
@@ -12,9 +12,9 @@ from classes.Dealer import Dealer
 
 class RoundOptions: 
     def __init__(self): 
-        self.blackjack_payout = 2
+        self.blackjack_payout = 1.5
         self.dealer_hits_soft_17 = False
-        self.minimum_bet = 1
+        self.minimum_bet = 2
         
     @staticmethod
     def default(): 
@@ -31,7 +31,7 @@ class Round:
         for i in range(len(players)): 
             self.bets.append(0)
             
-        self.card_count = CardCount(self.dealer.deck.num_decks)
+        self.card_count = CardCount(self.dealer.shoe.num_decks)
             
     def execute_round(self): 
         # request bets

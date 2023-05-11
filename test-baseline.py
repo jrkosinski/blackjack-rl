@@ -1,5 +1,5 @@
 from classes.Card import *
-from classes.Deck import * 
+from classes.Shoe import * 
 from classes.Player import *
 from classes.Dealer import *
 from classes.Round import * 

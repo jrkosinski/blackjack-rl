@@ -3,14 +3,14 @@ import random
 from classes.Card import CardSuit
 from classes.Card import CardValue
 from classes.Card import Card
-from classes.Deck import Deck 
+from classes.Shoe import Shoe 
 
 from classes.Player import Player
 
 class Dealer(Player): 
     def __init__(self, balance: int, decision_model, num_decks: int = 1): 
         super().__init__(balance, decision_model)
-        self.deck = Deck(num_decks)
+        self.shoe = Shoe(num_decks)
         
     def deal_self(self, num: int = 1): 
         return self.deal_player(self, num)
@@ -19,22 +19,25 @@ class Dealer(Player):
         cards = list()
         
         for i in range (num): 
-            card = self.deck.get_next()
+            card = self.shoe.get_next()
             player.hand.append(card)
             cards.append(card)
             
         return cards if len(cards) > 1 else cards[0]
     
-    def reset_deck(self): 
-        self.deck.reset()
+    #TODO: test this 
+    def reset_shoe(self): 
+        self.shoe.reset()
     
+    #TODO: test this 
     def shuffle(self):
-        self.deck.shuffle()
+        self.shoe.shuffle()
     
     #TODO: can this be removed (it's inherited)
     def decide_hit_or_stand(self, game) -> bool: 
         return self.decision_model.decide_hit_or_stand(self, game)
     
-    def top_up_deck(self): 
-        self.deck.top_up_deck()
+    #TODO: test this 
+    def top_up(self) -> int: 
+        return self.shoe.top_up()
         

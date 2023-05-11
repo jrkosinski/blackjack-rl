@@ -3,7 +3,7 @@ import random
 from classes.Card import CardSuit
 from classes.Card import CardValue
 from classes.Card import Card
-from classes.Deck import Deck 
+from classes.Shoe import Shoe 
 
 from classes.Player import Player
 from classes.Dealer import Dealer
@@ -17,7 +17,7 @@ class Game:
     def __init__(self, dealer: Dealer, verbose:int = 1): 
         self.dealer = dealer
         self.current_round = None
-        self.card_count = CardCount(dealer.deck.num_decks)
+        self.card_count = CardCount(dealer.shoe.num_decks)
         self.verbose = verbose
     
     def execute_next_round(self, players, options: RoundOptions = RoundOptions.default()) -> Round: 
@@ -25,13 +25,14 @@ class Game:
         
         self._print('')
         self._print('round initiated')
-        self._print(f'cards remaining: {self.dealer.deck.num_cards}')
+        self._print(f'cards remaining: {self.dealer.shoe.num_cards}')
         
-        #check first if deck needs to be topped up
-        if (self.dealer.deck.num_cards <= (self.dealer.deck.max_num_cards / 2)): 
-            self._print('topping up the deck')
-            self.dealer.top_up_deck()  #TODO: this affects card count
-            self._print(f'cards after top-up: {self.dealer.deck.num_cards}')
+        #check first if shoe needs to be topped up
+        if (self.dealer.shoe.num_cards <= (self.dealer.shoe.max_num_cards / 2)): 
+            self._print('topping up the shoe')
+            added_decks = self.dealer.top_up()  
+            self.card_count.add_decks(added_decks)
+            self._print(f'cards after top-up: {self.dealer.shoe.num_cards}')
             
         self.current_round.execute_round()
         

@@ -8,6 +8,7 @@ class DecisionModel:
     def decide_hit_or_stand(self, player: Player, game: Game) -> bool: 
         return False
     
+#TODO: test this 
 class BaselineDecisionModel(DecisionModel): 
     def decide_bet_amount(self, player: Player, game: Game) -> int: 
         return game.current_round.options.minimum_bet if (game.current_round.options.minimum_bet <= player.balance) else player.balance
@@ -19,8 +20,8 @@ class BaselineDecisionModel(DecisionModel):
                 return True 
         return False
 
+#TODO: test this 
 class DealerDecisionModel(DecisionModel): 
-    
     def decide_hit_or_stand(self, player: Player, game: Game) -> bool: 
         total = player.hand_total
         if (total < 21): 
@@ -31,9 +32,19 @@ class DealerDecisionModel(DecisionModel):
                 return True 
         return False
 
+#TODO: test this 
 class RainManDecisionModel(DecisionModel): 
     def decide_bet_amount(self, player: Player, game: Game) -> int: 
         return game.current_round.options.minimum_bet if (game.current_round.options.minimum_bet <= player.balance) else player.balance
     
     def decide_hit_or_stand(self, player: Player, game: Game) -> bool: 
+        total = player.hand_total
+        if (total < 21): 
+            diff_21 = 21 - total
+            prob_over_21 = game.card_count.probability_of_n_or_over(diff_21 + 1)
+            prob_improvement = game.card_count.probability_of_n_or_under(diff_21)
+            
+            #print(prob_improvement)
+            return (prob_improvement > 0.5 and prob_over_21 < 0.3)
+            
         return False
