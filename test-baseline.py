@@ -8,8 +8,8 @@ from classes.Game import *
 from classes.DecisionModel import BaselineDecisionModel
 from classes.DecisionModel import RainManDecisionModel
 
-player = Player(10000, BaselineDecisionModel())
-dealer = Dealer(1000000, num_decks=6)
+player = Player(10000, DealerDecisionModel())
+dealer = Dealer(1000000, DealerDecisionModel, num_decks=6)
 
 game = Game(dealer, verbose=1)
 

@@ -122,6 +122,7 @@ class TestShoe(unittest.TestCase):
     def test_shoe_top_up(self): 
         shoe = Shoe(3)
         self.assertEqual(shoe.num_cards, shoe.max_num_cards)
+        self.assertEqual(shoe.num_cards, 52 * 3)
         
         shoe.get_next(60)
         self.assertEqual(shoe.num_cards, shoe.max_num_cards - 60)
@@ -129,6 +130,52 @@ class TestShoe(unittest.TestCase):
         shoe.top_up()
         self.assertEqual(shoe.max_num_cards, 52 * 3)
         self.assertEqual(shoe.num_cards, shoe.max_num_cards - 60 + 52)
+        
+        shoe.top_up()
+        self.assertEqual(shoe.max_num_cards, 52 * 3)
+        self.assertEqual(shoe.num_cards, shoe.max_num_cards - 60 + 52)
+        
+    def test_remove_card(self): 
+        shoe = Shoe(2)
+        self.assertEqual(shoe.num_cards, shoe.max_num_cards)
+        
+        #ensure that there are two 2 of hears
+        self.assertEqual(shoe.get_count_of(get_card("H2")), 2)
+        
+        #remove first 2 of hearts
+        shoe.remove_card(get_card("H2"))
+        self.assertEqual(shoe.num_cards, shoe.max_num_cards-1)
+        
+        #ensure that 1 remains
+        self.assertEqual(shoe.get_count_of(get_card("H2")), 1)
+        
+        #remove second 2 of hearts
+        shoe.remove_card(get_card("H2"))
+        self.assertEqual(shoe.num_cards, shoe.max_num_cards-2)
+        
+        #remove has no effect, since all are gone
+        shoe.remove_card(get_card("H2"))
+        self.assertEqual(shoe.num_cards, shoe.max_num_cards-2)
+        
+        #ensure that all are gone
+        self.assertEqual(shoe.get_count_of(get_card("H2")), 0)
+        
+    def test_place_on_top(self): 
+        shoe = Shoe(2)
+        self.assertEqual(shoe.num_cards, shoe.max_num_cards)
+        self.assertEqual(shoe.num_cards, 52 * 2)
+        
+        #ensure that there are two 5 of spades
+        self.assertEqual(shoe.get_count_of(get_card("S5")), 2)
+        
+        # place one on top 
+        shoe.place_on_top(get_card("S5"))
+        
+        #count should be unchanged
+        self.assertEqual(shoe.num_cards, 52 * 2)
+        
+        #next card dealt should be 5 of spades
+        self.assertTrue(shoe.get_next().equals(get_card("S5")))
         
 class TestPlayer(unittest.TestCase): 
     def test_player_has_blackjack(self): 
@@ -313,10 +360,244 @@ class TestCardCount(unittest.TestCase):
         cc_single = CardCount()
         for i in range(0, 20): 
             print(i, cc_single.probability_of_n_or_under(i))
+    
+    def test_add_decks_probability_unchanged(self): 
+        cc = CardCount()
+        
+        #adding decks doesn't change probability if card not dealt
+        p1 = cc.probability_of_getting(10)
+        cc.add_decks(1)
+        
+        p2 = cc.probability_of_getting(10)
+        cc.add_decks(1)
+        
+        p3 = cc.probability_of_getting(10)
+        
+        self.assertEqual(p1, p2)
+        self.assertEqual(p2, p3)
+            
+    def test_add_decks_probability_changed(self): 
+        cc = CardCount()
+        cc.append(get_card("D10"))
+        
+        #adding decks doesn't change probability if card not dealt
+        p1 = cc.probability_of_getting(10)
+        cc.add_decks(1)
+        
+        p2 = cc.probability_of_getting(10)
+        cc.add_decks(1)
+        
+        p3 = cc.probability_of_getting(10)
+        
+        self.assertTrue(p1 < p2)
+        self.assertTrue(p2 < p3)
+        
+    def test_add_counts(self): 
+        cc1 = CardCount()
+        cc2 = CardCount()
+        
+        cc1.append(get_card("D2"))
+        
+        cc2.append(get_card("D2"))
+        cc2.append(get_card("S2"))
+        
+        self.assertEqual(cc1.cards_dealt[2], 1)
+        self.assertEqual(cc1.cards_dealt[3], 0)
+        
+        self.assertEqual(cc2.cards_dealt[2], 2)
+        self.assertEqual(cc2.cards_dealt[3], 0)
+        
+        cc1.add_counts(cc2)
+        self.assertEqual(cc1.cards_dealt[2], 3)
+        self.assertEqual(cc1.cards_dealt[3], 0)
+        
+class TestCardProbabilities(unittest.TestCase): 
+    def test_baseline_non10_probability(self): 
+        cc_single = CardCount()
+        cc_multi = CardCount(3)
+        
+        self.assertEqual(cc_single.probability_of_getting(4), 4/52)
+        self.assertEqual(cc_multi.probability_of_getting(4), 4/52)
+        
+    def test_baseline_10_probability(self): 
+        cc_single = CardCount()
+        cc_multi = CardCount(3)
+        
+        self.assertEqual(cc_single.probability_of_getting(10), 16/52)
+        self.assertEqual(cc_multi.probability_of_getting(10), 16/52)
+        
+    def test_baseline_1_and_11_probability(self): 
+        cc_single = CardCount()
+        cc_multi = CardCount(3)
+        
+        self.assertEqual(cc_single.probability_of_getting(1), 4/52)
+        #self.assertEqual(cc_multi.probability_of_getting(11), 4/52)
+        
+    def test_dealt_non10_probability(self): 
+        cc_single = CardCount()
+        cc_multi = CardCount(3)
+        
+        cc_single.append(get_card("D4"))
+        
+        cc_multi.append(get_card("D4"))
+        cc_multi.append(get_card("S4"))
+        
+        self.assertEqual(cc_single.probability_of_getting(4), 3/51)
+        self.assertEqual(cc_multi.probability_of_getting(4), 10/(52*3 -2))
+        
+    def test_dealt_10_probability(self): 
+        cc_single = CardCount()
+        cc_multi = CardCount(3)
+        
+        cc_single.append(get_card("D10"))
+        
+        cc_multi.append(get_card("D10"))
+        cc_multi.append(get_card("S10"))
+        
+        self.assertEqual(cc_single.probability_of_getting(10), 15/51)
+        self.assertEqual(cc_multi.probability_of_getting(10), 46/(52*3 -2))
+
+class TestDealerDecisionModel(unittest.TestCase):
+    def test_dealer_hits_on_12(self):
+        player = Player(10000, DealerDecisionModel())
+        player.hand.append(get_card("H10"))
+        player.hand.append(get_card("H2"))
+        
+        self.assertTrue(player.decision_model.decide_hit_or_stand(player, None))
+        
+    def test_dealer_hits_on_15(self):
+        player = Player(10000, DealerDecisionModel())
+        player.hand.append(get_card("H10"))
+        player.hand.append(get_card("H5"))
+        
+        self.assertTrue(player.decision_model.decide_hit_or_stand(player, None))
+        
+    def test_dealer_hits_on_16(self):
+        player = Player(10000, DealerDecisionModel())
+        player.hand.append(get_card("H10"))
+        player.hand.append(get_card("H6"))
+        
+        self.assertTrue(player.decision_model.decide_hit_or_stand(player, None))
+        
+    def test_dealer_sticks_on_hard_17(self):
+        player = Player(10000, DealerDecisionModel())
+        player.hand.append(get_card("H10"))
+        player.hand.append(get_card("H7"))
+        
+        self.assertFalse(player.decision_model.decide_hit_or_stand(player, None))
+        
+    def test_dealer_hits_on_soft_17(self):
+        player = Player(10000, DealerDecisionModel())
+        player.hand.append(get_card("HA"))
+        player.hand.append(get_card("H6"))
+        
+        self.assertTrue(player.decision_model.decide_hit_or_stand(player, None))
+        
+    def test_dealer_sticks_on_18(self):
+        player = Player(10000, DealerDecisionModel())
+        player.hand.append(get_card("HJ"))
+        player.hand.append(get_card("H8"))
+        
+        self.assertFalse(player.decision_model.decide_hit_or_stand(player, None))
         
 #class TestRound(unittest.TestCase): 
     #TODO: test card counts per round
     #TODO: test that player+dealer balances are zero-sum
     
+class TestGame(unittest.TestCase): 
+    def test_dealer_bust(self): 
+        balance = 10000
+        dealer = Dealer(balance, DealerDecisionModel(), num_decks=3)
+        player = Player(balance, BaselineDecisionModel())
+        game = Game(dealer)
+        dealer.load_deck([
+            "H9",
+            "H5",
+            "D10",
+            "D7",
+            "H8"
+        ])
+        
+        game.execute_next_round([player])
+        
+        self.assertEqual(dealer.balance, balance-2)
+        self.assertEqual(player.balance, balance+2)
+        
+    def test_player_bust(self):     
+        dealer = Dealer(10000, DealerDecisionModel(), num_decks=3)
+        player = Player(10000, BaselineDecisionModel())
+        game = Game(dealer)
+        dealer.load_deck([
+            "H9",
+            "H8",
+            "D10",
+            "D6",
+            "D7",
+        ])
+        
+        game.execute_next_round([player])
+    
+    def test_dealer_blackjack(self): 
+        dealer = Dealer(10000, DealerDecisionModel(), num_decks=3)
+        player = Player(10000, BaselineDecisionModel())
+        game = Game(dealer)
+        dealer.load_deck([
+            "H10",
+            "HA",
+            "D10",
+            "D6"
+        ])
+        
+        game.execute_next_round([player])
+    
+    def test_player_blackjack(self): 
+        dealer = Dealer(10000, DealerDecisionModel(), num_decks=3)
+        player = Player(10000, BaselineDecisionModel())
+        game = Game(dealer)
+        dealer.load_deck([
+            "H10",
+            "HK",
+            "DQ",
+            "DA"
+        ])
+        
+        game.execute_next_round([player])
+    
 if __name__ == '__main__':
     unittest.main()
+    
+    
+# top-up
+# # does top-up result in the right amount of cards when the shoe is 52? 
+# # does top-up result in the right amount of cards when the shoe is < 52? 
+# # does top-up result in the right amount of cards when the shoe is > 52? 
+
+# card counts 
+# # do card counts add correctly? 
+
+# card probabilities 
+# # is the probability of non-10 card x correct baseline? 
+# # is the probability of non-10 card x correct after removing from shoe? 
+# # is the probability of 10 card x correct baseline? 
+# # is the probability of 10 card x correct after removing from shoe? 
+# - does the probability of non-10 card x reset when shoe is reset? 
+# - does the probability of 10 card x reset when shoe is reset? 
+# - does the probability of non-10 card x change when shoe is topped up? 
+# - does the probability of 10 card x change when shoe is topped up? 
+
+# gameplay: 
+# - does game top up automatically when it's supposed to? 
+# - is game's card count correct after dealing some cards? 
+# - is game's card count correct after a top-up? 
+# - is game's card count correct after multiple top-ups? 
+
+# decision models: dealer 
+# # does dealer hit on 16? 
+# # does dealer stick on hard 17? 
+# # does dealer hit on soft 17? 
+# # does dealer stick on 18? 
+# # does dealer hit on 12? 
+
+# decision models: baseline 
+
+# decision models: 
