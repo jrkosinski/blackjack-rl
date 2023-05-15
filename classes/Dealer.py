@@ -3,6 +3,7 @@ import random
 from classes.Card import CardSuit
 from classes.Card import CardValue
 from classes.Card import Card
+from classes.Card import get_card
 from classes.Shoe import Shoe 
 
 from classes.Player import Player
@@ -40,4 +41,8 @@ class Dealer(Player):
     #TODO: test this 
     def top_up(self) -> int: 
         return self.shoe.top_up()
+        
+    def load_deck(self, card_names:list()): 
+        for c in reversed(card_names): 
+            self.shoe.place_on_top(get_card(c))
         

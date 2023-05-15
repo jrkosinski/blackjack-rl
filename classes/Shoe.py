@@ -40,7 +40,6 @@ class Shoe:
             cards[indices[i]] = self.cards[i]
         self.cards = cards
     
-    #TODO: test this 
     def top_up(self, num_decks=1) -> int: 
         count = 0
         while(self.num_cards + 52 <= self.max_num_cards): 
@@ -80,6 +79,25 @@ class Shoe:
         if (count == 1): 
             return output[0]
         return output
+        
+    # test this 
+    def get_count_of(self, card: Card) -> int: 
+        count = 0
+        for i in range(len(self.cards)): 
+            if (self.cards[i].equals(card)): 
+                count += 1
+                
+        return count
+        
+    def remove_card(self, card: Card): 
+        for i in range(len(self.cards)): 
+            if (self.cards[i].equals(card)): 
+                del self.cards[i] 
+                break
+                
+    def place_on_top(self, card: Card): 
+        self.remove_card(card)
+        self.cards.insert(0, card)
         
     #TODO: should be global in Card
     def _get_all_of_suit(self, suit: CardSuit) -> list: 

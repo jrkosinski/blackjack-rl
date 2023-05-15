@@ -79,6 +79,10 @@ class Card:
     def number_value(self): 
         return _card_numeric_values[self.value]
     
+    #TODO: test this
+    def equals(self, card): 
+        return self.suit == card.suit and self.value == card.value 
+        
     def __str__(self) -> str:
         return f"{self.suit} {self.value}"
 

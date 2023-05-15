@@ -21,6 +21,10 @@ class Game:
         self.verbose = verbose
     
     def execute_next_round(self, players, options: RoundOptions = RoundOptions.default()) -> Round: 
+        
+        #reset hands
+        self._reset_hands(players)
+        
         self.current_round = Round(self, players, options) 
         
         self._print('')
@@ -36,6 +40,22 @@ class Game:
             
         self.current_round.execute_round()
         
+        if (self.verbose > 0):
+            if (self.dealer.is_bust): 
+                self._print("dealer is bust")
+            elif (self.dealer.has_blackjack): 
+                self._print("dealer has blackjack")
+            elif (self.dealer.has_21): 
+                self._print("dealer has 21")
+            
+            for i in range(len(players)): 
+                if (players[i].is_bust): 
+                    self._print(f'player {i} is bust')
+                elif (players[i].has_blackjack): 
+                    self._print("player has blackjack")
+                elif (players[i].has_21): 
+                    self._print("player has 21")
+                    
         self._print(f'dealer balance: {self.dealer.balance}')
         for i in range(len(players)): 
             self._print(f'player {i} balance: {players[i].balance}')
@@ -44,15 +64,21 @@ class Game:
         self.card_count.add_counts(self.current_round.card_count)
         
         # print report of card count 
-        for i in range (1, 11):
-            self._print(f'card value {i}: {self.current_round.card_count.cards_dealt[i]}')
+        if (self.verbose > 1): 
+            for i in range (1, 11):
+                self._print(f'card value {i}: {self.current_round.card_count.cards_dealt[i]}')
             
         self._print(f'round results: {self.current_round.results}')
         return self.current_round
          
     def reset_cards(self): 
         print('d')
-        
+    
+    def _reset_hands(self, players): 
+        self.dealer.reset_hand()
+        for i, player in enumerate(players): 
+            player.reset_hand()
+            
     def _print(self, msg, threshold=1): 
         if (self.verbose >= threshold): 
             print(msg)

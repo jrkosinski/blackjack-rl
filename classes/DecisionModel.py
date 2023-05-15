@@ -1,11 +1,12 @@
 from classes.Player import Player
 from classes.Game import Game
+import random
 
 class DecisionModel: 
-    def decide_bet_amount(self, player: Player, game: Game) -> int: 
+    def decide_bet_amount(self, player: Player, game: Game = None) -> int: 
         return 0
     
-    def decide_hit_or_stand(self, player: Player, game: Game) -> bool: 
+    def decide_hit_or_stand(self, player: Player, game: Game = None) -> bool: 
         return False
     
 #TODO: test this 
@@ -13,7 +14,7 @@ class BaselineDecisionModel(DecisionModel):
     def decide_bet_amount(self, player: Player, game: Game) -> int: 
         return game.current_round.options.minimum_bet if (game.current_round.options.minimum_bet <= player.balance) else player.balance
     
-    def decide_hit_or_stand(self, player: Player, game: Game) -> bool: 
+    def decide_hit_or_stand(self, player: Player, game: Game = None) -> bool: 
         total = player.hand_total
         if (total < 21): 
             if (total <= 16): 
@@ -22,7 +23,7 @@ class BaselineDecisionModel(DecisionModel):
 
 #TODO: test this 
 class DealerDecisionModel(DecisionModel): 
-    def decide_hit_or_stand(self, player: Player, game: Game) -> bool: 
+    def decide_hit_or_stand(self, player: Player, game: Game = None) -> bool: 
         total = player.hand_total
         if (total < 21): 
             #dealer must hit on soft 17
@@ -48,3 +49,22 @@ class RainManDecisionModel(DecisionModel):
             return (prob_improvement > 0.5 and prob_over_21 < 0.3)
             
         return False
+
+class BadDecisionModel(DecisionModel): 
+    def decide_bet_amount(self, player: Player, game: Game) -> int: 
+        return game.current_round.options.minimum_bet if (game.current_round.options.minimum_bet <= player.balance) else player.balance
+    
+    def decide_hit_or_stand(self, player: Player, game: Game = None) -> bool: 
+        total = player.hand_total
+        if (total < 21): 
+            if (total <= 16): 
+                return False 
+        return True
+
+class RandomDecisionModel(DecisionModel): 
+    def decide_bet_amount(self, player: Player, game: Game) -> int: 
+        return game.current_round.options.minimum_bet if (game.current_round.options.minimum_bet <= player.balance) else player.balance
+    
+    def decide_hit_or_stand(self, player: Player, game: Game = None) -> bool: 
+        return random.randint(0, 1) == 0
+    

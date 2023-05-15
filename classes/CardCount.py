@@ -42,7 +42,6 @@ class CardCount:
     def append(self, card: Card): 
         self.cards_dealt[card.number_value] += 1
         
-    #TODO: test this; test that card probabilities are correct after adding more decks
     def add_decks(self, count): 
         self.num_decks += count 
         

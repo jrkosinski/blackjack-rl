@@ -26,12 +26,11 @@ class Round:
         self.options = options
         self.players = players
         self.bets = list()
-        self.dealer = game.dealer
         self.game = game
         for i in range(len(players)): 
             self.bets.append(0)
             
-        self.card_count = CardCount(self.dealer.shoe.num_decks)
+        self.card_count = CardCount(self.game.dealer.shoe.num_decks)
             
     def execute_round(self): 
         # request bets
@@ -57,18 +56,18 @@ class Round:
         
     def deal_hands(self): 
         # deal to self 
-        self.card_count.append(self.dealer.deal_self())
-        self.card_count.append(self.dealer.deal_self())
+        self.card_count.append(self.game.dealer.deal_self())
+        self.card_count.append(self.game.dealer.deal_self())
         
         # check for blackjack 
-        if (not self.dealer.has_blackjack): 
+        if (not self.game.dealer.has_blackjack): 
             # deal to players
             for n in range (2): 
                 for i, player in enumerate(self.players):
-                    self.card_count.append(self.dealer.deal_player(player))
+                    self.card_count.append(self.game.dealer.deal_player(player))
                     
     def do_turns(self):
-        if (not self.dealer.has_blackjack): 
+        if (not self.game.dealer.has_blackjack): 
 
             # each player's turn 
             self.do_player_turns()
@@ -84,14 +83,15 @@ class Round:
     def do_player_turn(self, player: Player): 
         while not player.is_bust and not player.has_21: 
             action = player.decide_hit_or_stand(self.game)
+            print('hit:', action)
             if (action): 
-                self.card_count.append(self.dealer.deal_player(player))
+                self.card_count.append(self.game.dealer.deal_player(player))
             else: 
                 break
     
     def do_dealer_turn(self): 
-        while (self.dealer.hand_total < 16): 
-            self.card_count.append(self.dealer.deal_self())
+        while (self.game.dealer.hand_total < 16 and not self.game.dealer.is_bust): 
+            self.card_count.append(self.game.dealer.deal_self())
           
     def finish_game(self): 
         self.results = list()
@@ -99,21 +99,17 @@ class Round:
             if (player.is_bust):
                 self.results.append(-1)
             else: 
-                if (self.dealer.is_bust): 
+                if (self.game.dealer.is_bust): 
                     self.results.append(1)
                 else: 
-                    if (player.hand_total > self.dealer.hand_total):
+                    if (player.hand_total > self.game.dealer.hand_total):
                         self.results.append(1)
-                    elif (player.hand_total == self.dealer.hand_total):  
+                    elif (player.hand_total == self.game.dealer.hand_total):  
                         self.results.append(0)
                     else: 
                         self.results.append(-1)
         
         self.pay_winners()
-        
-        self.dealer.reset_hand()
-        for i, player in enumerate(self.players): 
-            player.reset_hand()
                 
     def pay_winners(self): 
         for i, player in enumerate(self.players):
@@ -126,14 +122,14 @@ class Round:
                     
                 #give payout
                 player.balance += payout
-                self.dealer.balance -= payout
+                self.game.dealer.balance -= payout
                 
                 #give back original bet 
                 player.balance += self.bets[i]
                 
             elif (self.results[i] < 0): 
                 #dealer collects player's bet
-                self.dealer.balance += self.bets[i]
+                self.game.dealer.balance += self.bets[i]
             
             #push: return bet to player
             else: 
