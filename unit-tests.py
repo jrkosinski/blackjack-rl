@@ -504,7 +504,7 @@ class TestDealerDecisionModel(unittest.TestCase):
     #TODO: test card counts per round
     #TODO: test that player+dealer balances are zero-sum
     
-class TestGame(unittest.TestCase): 
+class TestGameOutomes(unittest.TestCase): 
     def test_dealer_bust(self): 
         balance = 10000
         dealer = Dealer(balance, DealerDecisionModel(), num_decks=3)
@@ -522,10 +522,15 @@ class TestGame(unittest.TestCase):
         
         self.assertEqual(dealer.balance, balance-2)
         self.assertEqual(player.balance, balance+2)
+        self.assertTrue(game.dealer.is_bust)
+        self.assertFalse(player.is_bust)
+        self.assertFalse(game.dealer.has_21)
+        self.assertFalse(player.has_21)
         
     def test_player_bust(self):     
-        dealer = Dealer(10000, DealerDecisionModel(), num_decks=3)
-        player = Player(10000, BaselineDecisionModel())
+        balance = 10000
+        dealer = Dealer(balance, DealerDecisionModel(), num_decks=3)
+        player = Player(balance, BaselineDecisionModel())
         game = Game(dealer)
         dealer.load_deck([
             "H9",
@@ -536,10 +541,18 @@ class TestGame(unittest.TestCase):
         ])
         
         game.execute_next_round([player])
+        
+        self.assertEqual(dealer.balance, balance+2)
+        self.assertEqual(player.balance, balance-2)
+        self.assertFalse(game.dealer.is_bust)
+        self.assertTrue(player.is_bust)
+        self.assertFalse(game.dealer.has_21)
+        self.assertFalse(player.has_21)
     
     def test_dealer_blackjack(self): 
-        dealer = Dealer(10000, DealerDecisionModel(), num_decks=3)
-        player = Player(10000, BaselineDecisionModel())
+        balance = 10000
+        dealer = Dealer(balance, DealerDecisionModel(), num_decks=3)
+        player = Player(balance, BaselineDecisionModel())
         game = Game(dealer)
         dealer.load_deck([
             "H10",
@@ -549,10 +562,20 @@ class TestGame(unittest.TestCase):
         ])
         
         game.execute_next_round([player])
+        
+        self.assertEqual(dealer.balance, balance+2)
+        self.assertEqual(player.balance, balance-2)
+        self.assertFalse(game.dealer.is_bust)
+        self.assertFalse(player.is_bust)
+        self.assertTrue(game.dealer.has_21)
+        self.assertTrue(game.dealer.has_blackjack)
+        self.assertFalse(player.has_21)
+        self.assertFalse(player.has_blackjack)
     
     def test_player_blackjack(self): 
-        dealer = Dealer(10000, DealerDecisionModel(), num_decks=3)
-        player = Player(10000, BaselineDecisionModel())
+        balance = 10000
+        dealer = Dealer(balance, DealerDecisionModel(), num_decks=3)
+        player = Player(balance, BaselineDecisionModel())
         game = Game(dealer)
         dealer.load_deck([
             "H10",
@@ -562,7 +585,38 @@ class TestGame(unittest.TestCase):
         ])
         
         game.execute_next_round([player])
+        
+        self.assertEqual(dealer.balance, balance-3)
+        self.assertEqual(player.balance, balance+3)
+        self.assertFalse(game.dealer.is_bust)
+        self.assertFalse(player.is_bust)
+        self.assertFalse(game.dealer.has_21)
+        self.assertFalse(game.dealer.has_blackjack)
+        self.assertTrue(player.has_21)
+        self.assertTrue(player.has_blackjack)
     
+class TestGame(unittest.TestCase): 
+    def test_game_top_up(self): 
+        balance = 1000000
+        num_decks = 3
+        dealer = Dealer(balance, DealerDecisionModel(), num_decks=num_decks)
+        player = Player(balance, BaselineDecisionModel())
+        game = Game(dealer)
+        
+        below_min = False
+        above_max = False
+        for i in range(1000): 
+            game.execute_next_round([player])
+            if (dealer.shoe.num_cards > 52 * num_decks): 
+                above_max = True
+                break
+            if (dealer.shoe.num_cards < (52 * num_decks) / 2 - 10): 
+                below_min = True
+                break
+                
+        self.assertFalse(above_max)
+        self.assertFalse(below_min)
+        
 if __name__ == '__main__':
     unittest.main()
     
@@ -586,7 +640,7 @@ if __name__ == '__main__':
 # - does the probability of 10 card x change when shoe is topped up? 
 
 # gameplay: 
-# - does game top up automatically when it's supposed to? 
+# # does game top up automatically when it's supposed to? 
 # - is game's card count correct after dealing some cards? 
 # - is game's card count correct after a top-up? 
 # - is game's card count correct after multiple top-ups? 
