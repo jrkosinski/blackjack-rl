@@ -11,12 +11,18 @@ class DecisionModel:
     
 #TODO: test this 
 class BaselineDecisionModel(DecisionModel): 
+    def __init__(self, hit_soft_17:bool = True): 
+        self.hit_soft_17 = hit_soft_17
+        
     def decide_bet_amount(self, player: Player, game: Game) -> int: 
         return game.current_round.options.minimum_bet if (game.current_round.options.minimum_bet <= player.balance) else player.balance
     
     def decide_hit_or_stand(self, player: Player, game: Game = None) -> bool: 
         total = player.hand_total
         if (total < 21): 
+            if (self.hit_soft_17): 
+                if (total == 17 and player.has_ace): 
+                    return False
             if (total <= 16): 
                 return True 
         return False

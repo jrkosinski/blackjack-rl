@@ -83,7 +83,6 @@ class Round:
     def do_player_turn(self, player: Player): 
         while not player.is_bust and not player.has_21: 
             action = player.decide_hit_or_stand(self.game)
-            print('hit:', action)
             if (action): 
                 self.card_count.append(self.game.dealer.deal_player(player))
             else: 
