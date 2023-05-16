@@ -1,6 +1,12 @@
 from classes.Card import Card
 
 class CardCount: 
+    '''
+    @title CardCount 
+    @desc Keeps a perfect count of cards that have been dealt from a shoe, and given the 
+    number of cards in the shoe, can calculate probabilities of certain events happening 
+    (i.e. regarding what cards will be dealt)
+    '''
     def __init__(self, num_decks: int = 1): 
         self.cards_dealt = {}
         self.num_decks = num_decks

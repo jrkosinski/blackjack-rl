@@ -21,7 +21,23 @@ class RoundOptions:
         return RoundOptions()
     
 class Round: 
+    '''
+    @title Round 
+    @desc One round of play has the following steps: 
+     - Dealer requests bets 
+     - All players except the dealer place bets 
+     - Dealer deals all cards to players & self 
+     - All players take their turns, deciding to hit or stick based on their decision models 
+     - The dealer takes his turn (based on his decision model) 
+     - Winnings are paid out and losing bets taken by dealer 
+    '''
     def __init__(self, game, players, options: RoundOptions.default()): 
+        '''
+        @title constructor 
+        @param game The game context (the game in which the round takes place)
+        @param players Array of Player instances (players taking part in this round)
+        @param options Struct of blackjack-specific options 
+        '''
         self.winner = None
         self.options = options
         self.players = players
@@ -33,6 +49,10 @@ class Round:
         self.card_count = CardCount(self.game.dealer.shoe.num_decks)
             
     def execute_round(self): 
+        '''
+        @title execute_round
+        @desc Executes the steps to make a complete round, in the right order 
+        '''
         # request bets
         self.request_bets()
             
@@ -42,10 +62,16 @@ class Round:
         # player & dealer turns
         self.do_turns()
         
-        # finish game 
-        self.finish_game()
+        # finish round 
+        self.finish_round()
         
     def request_bets(self): 
+        '''
+        @title request_bets
+        @desc Requests each player to choose a bet amount, then takes that amount from 
+        each player's balance (to be used in the round, and possibly returned at the 
+        end of the round)
+        '''
         for i, player in enumerate(self.players):
             bet = player.decide_bet_amount(self.game)
             if (bet > 0): 
@@ -55,6 +81,10 @@ class Round:
                 raise Exception(f"Player {i} does not have enough for the minimum bet")
         
     def deal_hands(self): 
+        '''
+        @title deal_hands
+        @desc Causes the dealer to deal his own hand, then deal to each of the players.
+        '''
         # deal to self 
         self.card_count.append(self.game.dealer.deal_self())
         self.card_count.append(self.game.dealer.deal_self())
@@ -67,6 +97,10 @@ class Round:
                     self.card_count.append(self.game.dealer.deal_player(player))
                     
     def do_turns(self):
+        '''
+        @title do_turns
+        @desc Causes each player to take his turn, then the dealer to take his turns. 
+        '''
         if (not self.game.dealer.has_blackjack): 
 
             # each player's turn 
@@ -76,23 +110,33 @@ class Round:
             self.do_dealer_turn()
                 
     def do_player_turns(self): 
+        '''
+        @title do_player_turns
+        @desc Causes each player to take his turn to play. 
+        '''
         for i, player in enumerate(self.players):
             #each player must take action 
-            self.do_player_turn(player)
-            
-    def do_player_turn(self, player: Player): 
-        while not player.is_bust and not player.has_21: 
-            action = player.decide_hit_or_stand(self.game)
-            if (action): 
-                self.card_count.append(self.game.dealer.deal_player(player))
-            else: 
-                break
+            while not player.is_bust and not player.has_21: 
+                action = player.decide_hit_or_stand(self.game)
+                if (action): 
+                    self.card_count.append(self.game.dealer.deal_player(player))
+                else: 
+                    break
     
     def do_dealer_turn(self): 
+        '''
+        @title do_dealer_turn
+        @desc Causes the dealer to execute his own turn. 
+        '''
         while (self.game.dealer.hand_total < 16 and not self.game.dealer.is_bust): 
             self.card_count.append(self.game.dealer.deal_self())
           
-    def finish_game(self): 
+    def finish_round(self): 
+        '''
+        @title finish_round
+        @desc Decides who won and who lost, and causes winners to be paid and losers 
+        to lose their bets (lost bets go to the dealer's balance)
+        '''
         self.results = list()
         for i, player in enumerate(self.players):
             if (player.is_bust):
@@ -111,11 +155,17 @@ class Round:
         self.pay_winners()
                 
     def pay_winners(self): 
+        '''
+        @title pay_winners
+        @desc Based on results of the round, losers' bets go to the dealer's balance, 
+        and winners get their original bets back plus winnings from the dealer's balance. 
+        (Or if it's a push, a player gets his original bet back only)
+        '''
         for i, player in enumerate(self.players):
             if (self.results[i] > 0): 
                 payout = self.bets[i]
                 
-                #payout is more for blackjack
+                #payout is more, for blackjack
                 if (player.has_blackjack):
                     payout *= self.options.blackjack_payout
                     

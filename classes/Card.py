@@ -2,12 +2,20 @@ from enum import Enum
 import random
 
 class CardSuit(Enum):
+    '''
+    @title CardSuit
+    @desc Enumerates 4 playing card suits 
+    '''
     Spades = 0, 
     Diamonds = 1,
     Clubs = 2,
     Hearts = 3
     
 class CardValue(Enum): 
+    '''
+    @title CardValue
+    @desc Enumerates 13 distinct cards (per suit)
+    '''
     Two = 2,
     Three = 3,
     Four = 4,
@@ -59,28 +67,45 @@ _all_card_values = [
 ]
 
 class Card: 
-    '''A playing card'''
-    def __init__(self, suit: CardSuit, value: CardValue):
+    '''
+    @title Card
+    @desc A playing card with suit, value, and numeric (blackjack) value 
+    
+    @prop suit CardSuit
+    @prop value CardValue
+    '''
+    def __init__(self, suit: CardSuit, value: CardValue):            
+        '''
+        @title constructor 
+        @param suit One of 4 card suits: hearts, diamonds, clubs, spades
+        @param value Numeric blackjack value of the card (e.g. 10 for King)
+        '''
         self.suit = suit
         self.value = value
         
     # True if card is an ace
     @property 
-    def is_ace(self): 
+    def is_ace(self) -> bool: 
         return self.value == CardValue.Ace
         
     @property 
     # True if card is jack, queen, or king
-    def is_face_card(self): 
+    def is_face_card(self) -> bool: 
         return self.value in [CardValue.Jack, CardValue.Queen, CardValue.King]
     
     @property 
     # Gets the numerical value in blackjack for the card
-    def number_value(self): 
+    def number_value(self) -> int: 
         return _card_numeric_values[self.value]
     
     #TODO: test this
-    def equals(self, card): 
+    def equals(self, card) -> bool: 
+        '''
+        @title equals
+        @desc Returns value indicating value equality; cards are equal only if both their 
+        suit and numeric value match. 
+        @returns True if given card equals this card 
+        '''
         return self.suit == card.suit and self.value == card.value 
         
     def __str__(self) -> str:
@@ -88,6 +113,19 @@ class Card:
 
 #TODO: (LOW) test this 
 def get_card(s: str) -> Card: 
+    '''
+    @title get_card
+    @desc Lets you construct a Card instance with a string, in the form: 
+        '<suit><card>' 
+    examples: 
+        H2 -> 2 of Hearts
+        DK -> King of Diamonds 
+        SQ -> Queen of Spades 
+        CA -> Ace of Clubs 
+        HJ -> Jack of Hearts 
+        D9 -> Nine of Diamonds 
+    @returns Card
+    '''
     ssuit = s[0:1]
     sval = s[1:]
     suit = None
@@ -131,10 +169,27 @@ def get_card(s: str) -> Card:
     return Card(suit, val)
     
 def all_card_values(): 
+    '''
+    @title all_card_values 
+    @desc Gets all 13 possible card values: 2,3,...9,10,J,Q,K,A
+    @returns List of CardValue enum values 
+    '''
     return _all_card_values
     
 def all_card_suits(): 
+    '''
+    @title all_card_suits
+    @desc Gets all 4 suits as CardSuit enum values
+    @returns List of CardSuit enum values
+    '''
     return _all_card_suits
     
 def card_numeric_values(): 
+    '''
+    @title card_numeric_values
+    @desc Gets all possible numeric values for cards, as a Dictionary of 
+        key: CardValue enum value
+        value: int 
+    @returns Dictionary of CardValue: int
+    '''
     return _card_numeric_values

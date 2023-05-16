@@ -14,13 +14,31 @@ from classes.Round import RoundOptions
 from classes.Round import Round
 
 class Game: 
-    def __init__(self, dealer: Dealer, verbose:int = 1): 
+    '''
+    @title Game 
+    @desc Context of a game; has a dealer, and rounds. Players are not properties of 
+    a game, but to specific Rounds; because through the course of a game, players may 
+    come and go. 
+    '''
+    def __init__(self, dealer: Dealer, verbosity:int = 1): 
+        '''
+        @title constructor 
+        @param dealer The dealer for this game. 
+        @param verbosity Verbosity of diagnostic messages (0 for none)
+        '''
         self.dealer = dealer
         self.current_round = None
         self.card_count = CardCount(dealer.shoe.num_decks)
-        self.verbose = verbose
+        self.verbosity = verbosity
     
     def execute_next_round(self, players, options: RoundOptions = RoundOptions.default()) -> Round: 
+        '''
+        @title execute_next_round 
+        @desc Initiates and executes a new round of play.
+        @param players Array of Player instances (players taking part in the round)
+        @param options List of blackjack-specific play options for the round
+        @returns Round instance representing executed current round 
+        '''
         
         #reset hands
         self._reset_hands(players)
@@ -40,7 +58,7 @@ class Game:
             
         self.current_round.execute_round()
         
-        if (self.verbose > 0):
+        if (self.verbosity > 0):
             if (self.dealer.is_bust): 
                 self._print("dealer is bust")
             elif (self.dealer.has_blackjack): 
@@ -64,7 +82,7 @@ class Game:
         self.card_count.add_counts(self.current_round.card_count)
         
         # print report of card count 
-        if (self.verbose > 1): 
+        if (self.verbosity > 1): 
             for i in range (1, 11):
                 self._print(f'card value {i}: {self.current_round.card_count.cards_dealt[i]}')
             
@@ -72,13 +90,28 @@ class Game:
         return self.current_round
          
     def reset_cards(self): 
-        print('d')
+        '''
+        @title reset_cards 
+        @desc 
+        '''
+        print('not implemented')
     
     def _reset_hands(self, players): 
+        '''
+        @title _reset_hands 
+        @desc Resets all players' hands (e.g. after a round is completed)
+        @param players All players whose hands to reset 
+        '''
         self.dealer.reset_hand()
         for i, player in enumerate(players): 
             player.reset_hand()
             
     def _print(self, msg, threshold=1): 
-        if (self.verbose >= threshold): 
+        '''
+        @title _print 
+        @desc Prints a diagnostic message if verbosity > threshold
+        @param msg The message to print (maybe)
+        @param threshold If self.verbosity exceeds this value, msg will print
+        '''
+        if (self.verbosity >= threshold): 
             print(msg)
