@@ -20,9 +20,14 @@ class Player:
         '''
         self.hand = list()
         self.balance = balance 
-        self.bet = 0
+        self.bet = 0 #TODO: is this ever used?
         self.decision_model = decision_model
     
+    # Gets the number of cards the player is holding
+    @property 
+    def num_cards(self): 
+        return len(self.hand)
+        
     # True if the player's hand contains at least one ace 
     @property
     def has_ace(self) -> bool: 
@@ -39,7 +44,7 @@ class Player:
         for i in range(len(self.hand)): 
             if self.hand[i].is_ace: 
                 has_ace = True 
-            if (self.hand[i].number_value == 10): 
+            if (self.hand[i].numeric_value == 10): 
                 has_ten = True
         return has_ten and has_ace
     
@@ -63,7 +68,7 @@ class Player:
             if (card.is_ace): 
                 aces.append(card)
             else: 
-                total += card.number_value
+                total += card.numeric_value
                 
         for i in range(len(aces)):
             if (total + 11 > 21): 
@@ -100,3 +105,8 @@ class Player:
         '''
         self.hand = list()
     
+    def copy(self): 
+        pcopy = Player(self.balance, self.decision_model)
+        for i, c in enumerate(self.hand): 
+            pcopy.hand.append(c)
+        return pcopy

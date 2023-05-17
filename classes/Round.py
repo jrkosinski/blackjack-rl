@@ -117,8 +117,8 @@ class Round:
         for i, player in enumerate(self.players):
             #each player must take action 
             while not player.is_bust and not player.has_21: 
-                action = player.decide_hit_or_stand(self.game)
-                if (action): 
+                hit = player.decide_hit_or_stand(self.game)
+                if (hit): 
                     self.card_count.append(self.game.dealer.deal_player(player))
                 else: 
                     break
@@ -128,6 +128,7 @@ class Round:
         @title do_dealer_turn
         @desc Causes the dealer to execute his own turn. 
         '''
+        #TODO: (HIGH) use dealer's decision model here 
         while (self.game.dealer.hand_total < 16 and not self.game.dealer.is_bust): 
             self.card_count.append(self.game.dealer.deal_self())
           

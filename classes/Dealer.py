@@ -23,9 +23,14 @@ class Dealer(Player):
         @param decision_model Required; controls how the dealer decides whether to hit or 
         stick per turn 
         '''
-        super().__init__(balance: int, decision_model)
+        super().__init__(balance, decision_model)
         self.shoe = Shoe(num_decks)
         
+    # Gets the instance of the card that the dealer is showing (or None if no cards)
+    @property 
+    def showing(self): 
+        return None if (self.num_cards < 1) else self.hand[0]
+            
     def deal_self(self, num: int = 1): 
         '''
         @title constructor
@@ -90,3 +95,11 @@ class Dealer(Player):
         for c in reversed(card_names): 
             self.shoe.place_on_top(get_card(c))
         
+    def copy(self): 
+        dcopy = Dealer(self.balance, self.decision_model, 0)
+        for i, c in enumerate(self.hand): 
+            dcopy.hand.append(c)
+        dcopy.shoe.num_decks = self.shoe.num_decks
+        for i, c in enumerate(self.shoe.cards): 
+            dcopy.shoe.cards.append(c)
+        return dcopy

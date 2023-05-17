@@ -2,6 +2,9 @@ from classes.Player import Player
 from classes.Game import Game
 import random
 
+def _decide_default_minimum_bet(player: Player, game: Game) -> int: 
+    return game.current_round.options.minimum_bet if (game.current_round.options.minimum_bet <= player.balance) else player.balance
+
 class DecisionModel: 
     '''
     @title DecisionModel
@@ -40,8 +43,8 @@ class BaselineDecisionModel(DecisionModel):
         self.hit_soft_17 = hit_soft_17
         
     def decide_bet_amount(self, player: Player, game: Game) -> int: 
-        return game.current_round.options.minimum_bet if (game.current_round.options.minimum_bet <= player.balance) else player.balance
-    
+        return _decide_default_minimum_bet(player, game)
+        
     def decide_hit_or_stand(self, player: Player, game: Game = None) -> bool: 
         total = player.hand_total
         if (total < 21): 
@@ -78,8 +81,8 @@ class RainManDecisionModel(DecisionModel):
     '''
     
     def decide_bet_amount(self, player: Player, game: Game) -> int: 
-        return game.current_round.options.minimum_bet if (game.current_round.options.minimum_bet <= player.balance) else player.balance
-    
+        return _decide_default_minimum_bet(player, game)
+        
     def decide_hit_or_stand(self, player: Player, game: Game) -> bool: 
         total = player.hand_total
         if (total < 21): 
@@ -100,7 +103,7 @@ class BadDecisionModel(DecisionModel):
     '''
     
     def decide_bet_amount(self, player: Player, game: Game) -> int: 
-        return game.current_round.options.minimum_bet if (game.current_round.options.minimum_bet <= player.balance) else player.balance
+        return _decide_default_minimum_bet(player, game)
     
     def decide_hit_or_stand(self, player: Player, game: Game = None) -> bool: 
         total = player.hand_total
@@ -116,8 +119,107 @@ class RandomDecisionModel(DecisionModel):
     '''
     
     def decide_bet_amount(self, player: Player, game: Game) -> int: 
-        return game.current_round.options.minimum_bet if (game.current_round.options.minimum_bet <= player.balance) else player.balance
+        return _decide_default_minimum_bet(player, game)
     
     def decide_hit_or_stand(self, player: Player, game: Game = None) -> bool: 
         return random.randint(0, 1) == 0
+    
+class MonteCarloDecisionInput: 
+    '''
+    @title MonteCarloDecisionInput
+    @desc All available inputs needed to make a hit/stand decision. 
+    
+    @prop hand_total The total value of all non-ace cards in hand 
+    @prop num_aces The number of aces held 
+    @prop dealer_showing The numeric value of the dealer's showing card. A '1' is used 
+    to denote an Ace (for the dealer)
+    '''
+    def __init__(self, hand_total: int = 0, num_aces: int = 0, dealer_showing: int = 0): 
+        self.hand_total = hand_total
+        self.num_aces = num_aces
+        self.dealer_showing = dealer_showing
+        
+    def to_string(self): 
+        return f'{self_hand_total}:{self.num_aces}:{self.dealer_showing}'
+        
+    def read_from_hands(game: Game, player: Player): 
+        hand_total = 0
+        num_aces = 0
+        
+        for i, c in enumerate(player.hand): 
+            if (c.is_ace): 
+                num_aces += 1
+            else:
+                hand_total += c.numeric_value
+        
+        self.dealer_showing = game.dealer.hand[0].numeric_value
+        self.hand_total = hand_total
+        self.num_aces = num_aces
+    
+class MonteCarloResult: 
+    def __init__(self, hit_expected_return: float = 0, stand_expected_return: float = 0): 
+        self.hit_expected_return = hit_expected_return
+        self.stand_expected_return = stand_expected_return
+        
+class MonteCarloLookup: 
+    def __init__(self): 
+        self.lookup_table = {}
+    
+    def get_or_add_result(self, game: Game, player: Player) -> int: 
+        result = self.get_result(game, player)
+        if (result < 0):
+            result = self.add_result(game, player)
+        
+        return result
+    
+    def get_result(self, game: Game, player: Player) -> int: 
+        input = MonteCarloDecisionInput(game, player)
+        result = self.lookup_table[input.to_string()]
+        
+        if (result is None): 
+            return -1
+        
+        return 1 if result.hit_expected_return > result.stand_expected_return else 0
+        
+    def add_result(self, game: Game, player: Player) -> int: 
+        input = MonteCarloDecisionInput(game, player)
+        
+        # calculate expected return after hit 
+        
+    def calculate_expected_return(self, game: Game, player: Player): 
+        hands = calculate_player_possible_hands(self, MonteCarloDecisionInput(game, player))
+        for i, h in enumerate(hands): 
+            if (h == 21): # the best case 
+                return 1
+    
+    def calculate_player_possible_hands(self, input: MonteCarloDecisionInput): 
+        base_total = input.hand_total 
+        if (input.num_aces == 0): 
+            output = [base_total]
+        else:   
+            #at most, only one ace can be 11 (because 2 11s is over 21)
+            
+            output.append(base_total + input.num_aces) #all aces are 1 
+            
+            if (base_total + (input.num_aces -1) + 11 <= 21):   
+                output.append(base_total + (input.num_aces -1) + 11) #one ace is 11
+            
+            return output
+        
+        
+class MonteCarloDecisionModel(DecisionModel): 
+    '''
+    @title MonteCarloDecisionModel
+    @desc A decision model that makes hit/stand decisions after running Monte Carlo 
+    simulations to determine the best course of action based on expected outcomes. 
+    '''
+    
+    def __init__(self): 
+        self.lookup = MonteCarloLookup()
+    
+    def decide_bet_amount(self, player: Player, game: Game) -> int: 
+        return _decide_default_minimum_bet(player, game)
+        
+    def decide_hit_or_stand(self, player: Player, game: Game = None) -> bool: 
+        return self.lookup.get_or_add_result(game, player)
     

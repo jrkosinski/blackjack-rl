@@ -46,7 +46,7 @@ class CardCount:
         return 1 - self.probability_of_n_or_over(card_value +1) 
     
     def append(self, card: Card): 
-        self.cards_dealt[card.number_value] += 1
+        self.cards_dealt[card.numeric_value] += 1
         
     def add_decks(self, count): 
         self.num_decks += count 

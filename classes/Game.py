@@ -96,6 +96,11 @@ class Game:
         '''
         print('not implemented')
     
+    def copy(self): 
+        gcopy = Game(self.dealer, 0)
+        gcopy.dealer = self.dealer.copy()
+        return gcopy
+        
     def _reset_hands(self, players): 
         '''
         @title _reset_hands 

@@ -95,7 +95,7 @@ class Card:
     
     @property 
     # Gets the numerical value in blackjack for the card
-    def number_value(self) -> int: 
+    def numeric_value(self) -> int: 
         return _card_numeric_values[self.value]
     
     #TODO: test this

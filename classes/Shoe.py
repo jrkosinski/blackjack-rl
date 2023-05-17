@@ -7,6 +7,7 @@ from classes.Card import all_card_values
 
 from classes.CardCount import CardCount
 
+#TODO: might it be easier to let the Shoe keep track of probabilities, and remove CardCount?
 class Shoe: 
     '''
     @title Shoe
@@ -86,13 +87,25 @@ class Shoe:
             for n in range(len(cards)): 
                 self.cards.append(cards[n])
         
+    def peek_next(self, index=0): 
+        '''
+        @title peek_next
+        @param count The index of the card to peek (default 0)
+        @desc Looks at the next nth card to be drawn, without removing it from the shoe.
+        @returns Card instance (if count is 1), or an array of Card instances
+        '''
+        if (index > self.num_cards): 
+            raise Exception("Number of cards to get is greater than number of cards available")
+        output = list()
+        return self.cards[index]
+        
     def get_next(self, count=1): 
         '''
         @title get_next
         @param count The number of cards to get (default 1)
         @desc Gets the specified number of cards from the top of the shoe, removing those 
         cards from the shoe. 
-        @returns Card instaance (if count is 1), or an array of Card instances
+        @returns Card instance (if count is 1), or an array of Card instances
         '''
         if (count > self.num_cards): 
             raise Exception("Number of cards to get is greater than number of cards available")
@@ -144,6 +157,19 @@ class Shoe:
         '''
         self.remove_card(card)
         self.cards.insert(0, card)
+        
+    def copy(self): 
+        '''
+        @title copy
+        @desc Returns a shallow copy of the entire shoe 
+        @returns A Shoe instance
+        '''
+        scopy = Shoe(0)
+        scopy.num_decks = self.num_decks
+        for i in range(len(self.cards)): 
+            scopy.cards.append(self.cards[i])
+            
+        return scopy
         
     #TODO: should be global in Card
     def _get_all_of_suit(self, suit: CardSuit) -> list: 
