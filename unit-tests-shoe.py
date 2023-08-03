@@ -74,6 +74,22 @@ class TestShoe(unittest.TestCase):
         self.assertEqual(shoe.count, 52 * 4 -1)
         shoe.top_up()
         self.assertEqual(shoe.count, 52 * 5 -1)
+    
+    def test_statistics(self): 
+        shoe = Shoe(5) 
+        
+        shoe.statistical_analysis()
+        
+        for i in range(1, 10): 
+            self.assertEqual(round(shoe.probabilities[i], 4), 0.0769)
+        self.assertEqual(round(shoe.probabilities[10], 2), 0.31)
+        self.assertEqual(round(shoe.probabilities[11], 4), 0.0769)
+        
+        self.assertEqual(round(shoe.probability_of_lte(5), 4), 0.3846)
+        self.assertEqual(round(shoe.probability_of_lte(1), 4), 0.0769)
+        self.assertEqual(round(shoe.probability_of_lte(0), 4), 0.0)
+        self.assertEqual(round(shoe.probability_of_gt(4), 4), 0.7692)
+        self.assertEqual(round(shoe.probability_of_gt(11), 4), 0.0)
         
 if __name__ == '__main__':
     unittest.main()

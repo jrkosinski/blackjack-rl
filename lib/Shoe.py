@@ -7,6 +7,9 @@ class Shoe:
         self.cards = []
         self.add_deck(num_decks)
         self.max_deck_count = num_decks
+        self.probabilities = {}
+        
+        self.statistical_analysis()
         
     @property
     def count(self): 
@@ -43,4 +46,45 @@ class Shoe:
         
         if (shuffle): 
             self.shuffle()
-            
+    
+    def probability_of_lte(self, value) -> float: 
+        prob = 0
+        for i in range(1, value+1): 
+            prob += self.probabilities[i]
+        return prob
+        
+    def probability_of_gt(self, value) -> float: 
+        prob = 0
+        for i in range(value+1, 12): 
+            prob += self.probabilities[i]
+        return prob
+        
+    def statistical_analysis(self): 
+        counts = {}
+        self.probabilities = {}
+        
+        for i in range(2, 12): 
+            counts[i] = 0
+            self.probabilities[i] = 0
+        
+        #count all card values 
+        for card in self.cards: 
+            counts[card] += 1
+        
+        #calculate probabilities
+        for value in counts.keys(): 
+            self.probabilities[value] = counts[value] / self.count
+        
+        #add one more, probability of 1s (aces)
+        '''
+        This makes the probabilities add up to a sum of > 1
+        This is ok, because it only makes a difference if you query a set of values 
+        that includes both 1 and 11. You would never do that, because the answer would 
+        obviously be 100% (it's pointless). The cure would be to subtract ~~ 0.0746 from 
+        any queries that include both 1 and 11 (but again, not really worthwhile)
+        '''
+        self.probabilities[1] = self.probabilities[11]
+        
+        summ = 0
+        for key in self.probabilities: 
+            summ += self.probabilities[key]

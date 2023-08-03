@@ -135,6 +135,18 @@ class Table:
 class DecisionModel: 
     def decide_hit(self, dealer: Dealer, shoe: Shoe, players, player_index: int): 
         return False
+        '''
+        What can go into a decision: 
+        - dealer's 'up' card 
+        - players' showing cards (all cards on table)
+        - cards that have already been dealt since last shoe top-up
+        - cards in my hand 
+        
+        Simplified: 
+        - complete statistical count of shoe, minus cards dealt and cards showing 
+        - card values in my hand 
+        - dealer's 'up' card 
+        '''
         
     def _get_hand(self, dealer: Dealer, players, player_index: int): 
         if (player_index < 0): 
