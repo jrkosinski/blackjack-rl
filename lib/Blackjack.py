@@ -2,6 +2,7 @@ from lib.Shoe import Shoe
 from lib.Hand import Hand 
 from math import floor, ceil
 
+#TODO: (HIGH) remove DealerHand - just use a normal hand and deal the dealer's second card later
 class DealerHand(Hand): 
     def __init__(self): 
         super().__init__()
@@ -9,8 +10,8 @@ class DealerHand(Hand):
     @property
     def showing(self): 
         if (self.count > 1): 
-            return self.cards[1:]
-        return []
+            return self.cards[1]
+        return None
         
 class Player: 
     def __init__(self, decision_model): 
@@ -27,7 +28,7 @@ class Player:
         self.bet = minimum_bet
         
     def request_action(self, dealer, shoe: Shoe, players, player_index: int) -> bool: 
-        return self.decision_model.decide_hit(dealer, shoe, players, player_index)
+        return self.decision_model.decide_hit(dealer=dealer, shoe=shoe, players=players, player_index=player_index)
         
 class Dealer(Player): 
     def __init__(self): 
@@ -133,6 +134,9 @@ class Table:
         self.dealer.assess_winners(self.players)
 
 class DecisionModel: 
+    def __init__(self): 
+        pass
+
     def decide_hit(self, dealer: Dealer, shoe: Shoe, players, player_index: int): 
         return False
         '''
@@ -154,6 +158,9 @@ class DecisionModel:
         return players[player_index].hand
         
 class DealerDecisionModel(DecisionModel): 
+    def __init__(self): 
+        super().__init__()
+
     def decide_hit(self, dealer: Dealer, shoe: Shoe, players, player_index: int): 
         hand = self._get_hand(dealer, players, player_index)
         
