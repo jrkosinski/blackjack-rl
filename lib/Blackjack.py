@@ -1,6 +1,6 @@
 from lib.Shoe import Shoe
 from lib.Hand import Hand 
-from math import floor
+from math import floor, ceil
 
 class DealerHand(Hand): 
     def __init__(self): 
@@ -15,9 +15,9 @@ class DealerHand(Hand):
 class Player: 
     def __init__(self, decision_model): 
         self.hand: Hand = Hand()
-        self.decision_model = decision_model
-        self.balance = 0
-        self.bet = 0
+        self.decision_model: DecisionModel = decision_model
+        self.balance: int = 0
+        self.bet: int = 0
 
     def add_card(self, card: int): 
         self.hand.add_card(card)
@@ -26,14 +26,27 @@ class Player:
         #TODO: should be determined by decision model
         self.bet = minimum_bet
         
+    def request_action(self, dealer, shoe: Shoe, players, player_index: int) -> bool: 
+        return self.decision_model.decide_hit(dealer, shoe, players, player_index)
+        
 class Dealer(Player): 
     def __init__(self): 
         super().__init__(DealerDecisionModel())
         self.hand = DealerHand()
         
+    def take_bets(self, players, minimum_bet: int): 
+        for player in players: 
+            player.request_bet(minimum_bet)
+            if (player.bet < minimum_bet): 
+                player.bet = minimum_bet
+    
     def deal_hands(self, shoe: Shoe, players): 
+        #clear hand 
+        self.hand.clear()
+        
         #deal a card to players 
         for player in players: 
+            player.hand.clear()
             player.add_card(shoe.deal_card())
             
         #deal one to self 
@@ -46,11 +59,25 @@ class Dealer(Player):
         #deal one to self 
         self.add_card(shoe.deal_card())
     
-    def take_bets(self, players, minimum_bet: int): 
-        for player in players: 
-            player.request_bet(minimum_bet)
-            if (player.bet < minimum_bet): 
-                player.bet = minimum_bet
+    def play_round(self, shoe: Shoe, players): 
+        for i in range(len(players)):
+            player = players[i]
+            
+            #let player hit or stand 
+            while (player.hand.is_playable): 
+                hit = player.request_action(self, shoe, players, i)
+                if (hit):
+                    player.add_card(shoe.deal_card())
+                else: 
+                    break
+        
+        #now dealer takes a turn 
+        while (self.hand.is_playable): 
+            hit = self.request_action(self, shoe, players, -1)
+            if (hit):
+                self.add_card(shoe.deal_card())
+            else: 
+                break
     
     def assess_winners(self, players): 
         for player in players: 
@@ -85,26 +112,38 @@ class Dealer(Player):
 class Table: 
     def __init__(self, dealer: Dealer, num_decks: int, minimum_bet: int = 2): 
         self.shoe = Shoe(num_decks)
-        self.dealer = dealer
-        self.players = []
-        self.minimum_bet = minimum_bet
+        self.dealer: Dealer = dealer
+        self.players = [] #Player
+        self.minimum_bet: int = minimum_bet
+        self.min_decks: int = int(ceil(self.shoe.max_deck_count / 2))
     
     def deal_hands(self): 
         self.dealer.take_bets(self.players, self.minimum_bet)
         self.dealer.deal_hands(self.shoe, self.players)
+        
+    def play_round(self): 
+        
+        #check if need to top up shoe 
+        if (self.shoe.count < self.min_decks * 52): 
+            self.shoe.top_up()
+        
+        #take bets & deal hands 
+        self.deal_hands()
+        self.dealer.play_round(self.shoe, self.players)
+        self.dealer.assess_winners(self.players)
 
 class DecisionModel: 
-    def decide_hit(self, table: Table, player_index: int): 
+    def decide_hit(self, dealer: Dealer, shoe: Shoe, players, player_index: int): 
         return False
         
-    def _get_hand(self, table: Table, player_index: int): 
+    def _get_hand(self, dealer: Dealer, players, player_index: int): 
         if (player_index < 0): 
-            return table.dealer.hand
-        return table.players[player_index].hand
+            return dealer.hand
+        return players[player_index].hand
         
 class DealerDecisionModel(DecisionModel): 
-    def decide_hit(self, table: Table, player_index: int): 
-        hand = self._get_hand(table, player_index)
+    def decide_hit(self, dealer: Dealer, shoe: Shoe, players, player_index: int): 
+        hand = self._get_hand(dealer, players, player_index)
         
         #always hit on less than 17
         if (hand.total < 17): 

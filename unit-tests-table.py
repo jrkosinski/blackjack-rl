@@ -130,6 +130,44 @@ class TestTable(unittest.TestCase):
         self.assertEqual(table.dealer.balance, 0)
         self.assertEqual(table.players[0].balance, 2)
         self.assertEqual(table.players[1].balance, -2)
+    
+    def test_play_round_no_hits(self): 
+        dealer = Dealer()
+        table = Table(dealer, 1)
+        
+        #2 players
+        table.players.append(Player(DealerDecisionModel()))
+        table.players.append(Player(DealerDecisionModel()))
+        
+        #load the shoe 
+        table.shoe.cards = [
+            10, 10, 10, 9, 7, 8
+        ]
+        
+        table.play_round()
+        
+        self.assertEqual(table.dealer.balance, 0)
+        self.assertEqual(table.players[0].balance, 2)
+        self.assertEqual(table.players[1].balance, -2)
+        
+    def test_play_round_dealer_hits(self): 
+        dealer = Dealer()
+        table = Table(dealer, 1)
+        
+        #2 players
+        table.players.append(Player(DealerDecisionModel()))
+        table.players.append(Player(DealerDecisionModel()))
+        
+        #load the shoe 
+        table.shoe.cards = [
+            10, 10, 10, 9, 7, 5, 3
+        ]
+        
+        table.play_round()
+        
+        self.assertEqual(table.dealer.balance, 0)
+        self.assertEqual(table.players[0].balance, 2)
+        self.assertEqual(table.players[1].balance, -2)
         
 if __name__ == '__main__':
     unittest.main()

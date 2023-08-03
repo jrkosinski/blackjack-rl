@@ -24,7 +24,9 @@ class Shoe:
         max_count = 52 * self.max_deck_count
         diff = max_count - self.count
         deck_count = int(floor(diff/52))
-        self.add_deck(count=deck_count, shuffle=True)
+        
+        if (deck_count > 0):
+            self.add_deck(count=deck_count, shuffle=True)
         
     def deal_card(self) -> int: 
         if (self.count > 0): 

@@ -32,6 +32,10 @@ class Hand:
         return self.total == 21
         
     @property 
+    def is_playable(self) -> bool:
+        return self.total < 21
+        
+    @property 
     def ace_count(self) -> int: 
         count = 0
         for c in self.cards: 
