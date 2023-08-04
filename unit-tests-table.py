@@ -15,9 +15,11 @@ class TestTable(unittest.TestCase):
         table.players.append(Player(DealerDecisionModel()))
         
         table.deal_hands()
+
+        #deal the dealer one exxtra card to account for missing 'down' card
+        table.dealer.add_card(table.shoe.deal_card())
         
         self.assertEqual(table.dealer.hand.count, 2)
-        self.assertEqual(len(table.dealer.hand.showing), 1)
         
         for player in table.players: 
             self.assertEqual(player.hand.count, 2)
@@ -36,6 +38,9 @@ class TestTable(unittest.TestCase):
         ]
         
         table.deal_hands()
+
+        #deal the dealer one exxtra card to account for missing 'down' card
+        table.dealer.add_card(table.shoe.deal_card())
         
         #everyone has blackjack? 
         self.assertTrue(table.dealer.hand.is_blackjack)
@@ -56,6 +61,9 @@ class TestTable(unittest.TestCase):
         ]
         
         table.deal_hands()
+
+        #deal the dealer one exxtra card to account for missing 'down' card
+        table.dealer.add_card(table.shoe.deal_card())
         
         #everyone has blackjack? 
         self.assertTrue(table.dealer.hand.is_blackjack)
@@ -82,6 +90,9 @@ class TestTable(unittest.TestCase):
         ]
         
         table.deal_hands()
+
+        #deal the dealer one exxtra card to account for missing 'down' card
+        table.dealer.add_card(table.shoe.deal_card())
         
         table.dealer.assess_winners(table.players)
         
@@ -103,6 +114,9 @@ class TestTable(unittest.TestCase):
         ]
         
         table.deal_hands()
+
+        #deal the dealer one exxtra card to account for missing 'down' card
+        table.dealer.add_card(table.shoe.deal_card())
         
         table.dealer.assess_winners(table.players)
         
@@ -124,6 +138,9 @@ class TestTable(unittest.TestCase):
         ]
         
         table.deal_hands()
+
+        #deal the dealer one exxtra card to account for missing 'down' card
+        table.dealer.add_card(table.shoe.deal_card())
         
         table.dealer.assess_winners(table.players)
         

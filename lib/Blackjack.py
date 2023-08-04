@@ -2,17 +2,6 @@ from lib.Shoe import Shoe
 from lib.Hand import Hand 
 from math import floor, ceil
 
-#TODO: (HIGH) remove DealerHand - just use a normal hand and deal the dealer's second card later
-class DealerHand(Hand): 
-    def __init__(self): 
-        super().__init__()
-        
-    @property
-    def showing(self): 
-        if (self.count > 1): 
-            return self.cards[1]
-        return None
-        
 class Player: 
     def __init__(self, decision_model): 
         self.hand: Hand = Hand()
@@ -33,7 +22,6 @@ class Player:
 class Dealer(Player): 
     def __init__(self): 
         super().__init__(DealerDecisionModel())
-        self.hand = DealerHand()
         
     def take_bets(self, players, minimum_bet: int): 
         for player in players: 
@@ -56,9 +44,6 @@ class Dealer(Player):
         #deal a card to players 
         for player in players: 
             player.add_card(shoe.deal_card())
-            
-        #deal one to self 
-        self.add_card(shoe.deal_card())
     
     def play_round(self, shoe: Shoe, players): 
         for i in range(len(players)):
@@ -71,6 +56,20 @@ class Dealer(Player):
                     player.add_card(shoe.deal_card())
                 else: 
                     break
+
+        '''
+        At this point, the dealer might only have one card. This is because, to 
+        avoid messing up the probabilities in the deck, we don't deal the dealer a 
+        'down' card initially. That 'down' card is just considered part of the deck
+        as far as proabilities are concerned, and so we just actually keep it in the 
+        deck, to simplify calculations. 
+        Instead, at the time that the dealer would normally 'flip' the down card, a
+        there is no down card to flip, and the dealer just deals himself that card
+        from the deck. 
+        '''
+        if (self.hand.count == 1): 
+            #this takes the place of the dealer's 'down card', now showing
+            self.add_card(shoe.deal_card())
         
         #now dealer takes a turn 
         while (self.hand.is_playable): 
