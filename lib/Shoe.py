@@ -5,8 +5,8 @@ from lib.Deck import Deck
 class Shoe: 
     def __init__(self, num_decks: int): 
         self.cards = []
-        self.add_deck(num_decks)
         self.max_deck_count = num_decks
+        self.add_deck(num_decks)
         self.probabilities = {}
         
         self.statistical_analysis()
@@ -26,7 +26,7 @@ class Shoe:
     def top_up(self): 
         max_count = 52 * self.max_deck_count
         diff = max_count - self.count
-        deck_count = int(floor(diff/52))
+        deck_count = int(diff//52)
         
         if (deck_count > 0):
             self.add_deck(count=deck_count, shuffle=True)
@@ -47,6 +47,11 @@ class Shoe:
         if (shuffle): 
             self.shuffle()
     
+    def reset(self): 
+        self.cards = []
+        self.add_deck(self.max_deck_count)
+        self.probabilities = {}
+        
     def probability_of_lte(self, value) -> float: 
         prob = 0
         for i in range(1, value+1): 

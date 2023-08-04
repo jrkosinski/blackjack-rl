@@ -8,6 +8,7 @@ class Player:
         self.decision_model: DecisionModel = decision_model
         self.balance: int = 0
         self.bet: int = 0
+        self.last_action: bool = False
 
     def add_card(self, card: int): 
         self.hand.add_card(card)
@@ -17,6 +18,11 @@ class Player:
         
     def request_action(self, dealer, shoe: Shoe, players, player_index: int) -> bool: 
         return self.decision_model.decide_hit(dealer, shoe, players, player_index)
+        
+    def reset(self): 
+        self.hand.clear()
+        self.balance = 0
+        self.bet = 0
         
 class Dealer(Player): 
     def __init__(self): 
@@ -49,16 +55,24 @@ class Dealer(Player):
         for player in players: 
             player.add_card(shoe.deal_card())
     
-    def play_round(self, shoe: Shoe, players): 
+    def play_round(self, shoe: Shoe, players, on_action_callback = None): 
         for i in range(len(players)):
             player = players[i]
             
             #let player hit or stand 
             while (player.hand.is_playable): 
                 hit = player.request_action(self, shoe, players, i)
+                player.last_action = hit
+                
                 if (hit):
                     player.add_card(shoe.deal_card())
-                else: 
+                
+                    #call the callback if not done 
+                    if (player.hand.is_playable): 
+                        if (on_action_callback is not None): 
+                            on_action_callback(player, False)
+                
+                if not hit: 
                     break
 
         '''
@@ -83,7 +97,7 @@ class Dealer(Player):
             else: 
                 break
     
-    def assess_winners(self, players): 
+    def assess_winners(self, players, on_action_callback = None): 
         for player in players: 
             if (player.hand.is_over): 
                 #player is bust 
@@ -106,7 +120,10 @@ class Dealer(Player):
                     else: 
                         #push
                         player.bet = 0
-    
+            
+            if (on_action_callback is not None): 
+                on_action_callback(player, True)
+                
     def _player_settle(self, player, multiplier): 
         value = int(floor(player.bet * multiplier))
         self.balance -= value
@@ -120,6 +137,7 @@ class Table:
         self.players = [] #Player
         self.minimum_bet: int = minimum_bet
         self.min_decks: int = 1 #int(ceil(self.shoe.max_deck_count / 2))
+        self.on_action_callback = None
     
     def deal_hands(self): 
         self.dealer.take_bets(self.shoe, self.players, self.minimum_bet)
@@ -134,9 +152,22 @@ class Table:
         
         #take bets & deal hands 
         self.deal_hands()
-        self.dealer.play_round(self.shoe, self.players)
-        self.dealer.assess_winners(self.players)
+        self.dealer.play_round(self.shoe, self.players, self.on_action_callback)
+        self.dealer.assess_winners(self.players, self.on_action_callback)
 
+    def add_player(self, player: Player): 
+        self.players.append(player)
+    
+    #TODO: this should have a subscribe model
+    def on_action(self, callback): 
+        self.on_action_callback = callback
+    
+    def reset(self): 
+        self.shoe.reset()
+        self.dealer.reset()
+        for player in self.players: 
+            player.reset()
+        
 class DecisionModel: 
     def __init__(self): 
         pass

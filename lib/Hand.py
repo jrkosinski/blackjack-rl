@@ -48,6 +48,10 @@ class Hand:
             if c == 11 or c == 1: 
                 count += 1
         return count 
+        
+    @property 
+    def soft_ace_count(self) -> int: 
+        return self.card_count(11) 
     
     @property 
     def is_soft(self) -> bool: 
