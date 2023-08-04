@@ -1,7 +1,13 @@
 
+from typing import Any
+
+
 class Hand: 
     def __init__(self):
         self.cards = []
+
+    def __getitem__(self, index: int) -> int:
+        return self.cards[index]
         
     @property 
     def total(self) -> int: 
@@ -43,6 +49,10 @@ class Hand:
                 count += 1
         return count 
     
+    @property 
+    def is_soft(self) -> bool: 
+        return self.card_count(11) > 0
+
     def add_card(self, card: int): 
         self.cards.append(card)
         

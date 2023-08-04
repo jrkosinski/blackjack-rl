@@ -22,6 +22,10 @@ class Player:
 class Dealer(Player): 
     def __init__(self): 
         super().__init__(DealerDecisionModel())
+
+    @property
+    def showing(self): 
+        return self.hand[0] if self.hand.count > 0 else None
         
     def take_bets(self, players, minimum_bet: int): 
         for player in players: 

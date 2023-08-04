@@ -79,6 +79,15 @@ class TestHandValues(unittest.TestCase):
         self.assertFalse(hand.is_natural)
         self.assertFalse(hand.is_over)
 
+    def test_subscriptable(self): 
+        hand = Hand()
+        hand.add_card(3)
+
+        self.assertEqual(hand[0], 3)
+        with self.assertRaises(IndexError):
+            h = hand[1]
+
+
 if __name__ == '__main__':
     unittest.main()
     
