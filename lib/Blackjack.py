@@ -12,12 +12,11 @@ class Player:
     def add_card(self, card: int): 
         self.hand.add_card(card)
         
-    def request_bet(self, minimum_bet: int): 
-        #TODO: should be determined by decision model
-        self.bet = minimum_bet
+    def request_bet(self, dealer, shoe: Shoe, players, player_index: int, minimum_bet: int): 
+        self.bet = self.decision_model.decide_bet(dealer, shoe, players, player_index, minimum_bet)
         
     def request_action(self, dealer, shoe: Shoe, players, player_index: int) -> bool: 
-        return self.decision_model.decide_hit(dealer=dealer, shoe=shoe, players=players, player_index=player_index)
+        return self.decision_model.decide_hit(dealer, shoe, players, player_index)
         
 class Dealer(Player): 
     def __init__(self): 
@@ -27,9 +26,10 @@ class Dealer(Player):
     def showing(self): 
         return self.hand[0] if self.hand.count > 0 else None
         
-    def take_bets(self, players, minimum_bet: int): 
-        for player in players: 
-            player.request_bet(minimum_bet)
+    def take_bets(self, shoe, players, minimum_bet: int): 
+        for i in range(len(players)): 
+            player = players[i]
+            player.request_bet(self, shoe, players, i, minimum_bet)
             if (player.bet < minimum_bet): 
                 player.bet = minimum_bet
     
@@ -122,7 +122,7 @@ class Table:
         self.min_decks: int = 1 #int(ceil(self.shoe.max_deck_count / 2))
     
     def deal_hands(self): 
-        self.dealer.take_bets(self.players, self.minimum_bet)
+        self.dealer.take_bets(self.shoe, self.players, self.minimum_bet)
         self.dealer.deal_hands(self.shoe, self.players)
         
     def play_round(self): 
@@ -141,6 +141,9 @@ class DecisionModel:
     def __init__(self): 
         pass
 
+    def decide_bet(self, dealer: Dealer, shoe: Shoe, players, player_index: int, minimum_bet: int = 1):
+        return minimum_bet
+    
     def decide_hit(self, dealer: Dealer, shoe: Shoe, players, player_index: int): 
         return False
         '''
