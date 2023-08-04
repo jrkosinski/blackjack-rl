@@ -58,7 +58,18 @@ class Shoe:
         for i in range(value+1, 12): 
             prob += self.probabilities[i]
         return prob
-        
+    
+    def hi_lo_count(self) -> int: 
+        count = 0
+
+        for c in self.cards: 
+            if (c <= 6): 
+                count -= 1
+            elif (c >= 10): 
+                count += 1
+                
+        return count
+
     def statistical_analysis(self): 
         counts = {}
         self.probabilities = {}

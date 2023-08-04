@@ -3,10 +3,11 @@ from lib.Hand import Hand
 from lib.Blackjack import Dealer, DecisionModel
 
 '''
-First column is the dealer's showing card, second is the player's hand value. 
+First dimension is the dealer's showing card, second is whether the player's hand
+is hard or soft; third is the player's total hand value (with ace as 11). 
 Example: 
     dealer is showing 3, player's hand is 13: 
-        _fixed_strategy_table[3][13]
+        _fixed_strategy_table[3]['hard'][13]
 '''
 _fixed_strategy_table = {
     1: {

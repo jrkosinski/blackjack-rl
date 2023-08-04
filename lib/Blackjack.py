@@ -119,7 +119,7 @@ class Table:
         self.dealer: Dealer = dealer
         self.players = [] #Player
         self.minimum_bet: int = minimum_bet
-        self.min_decks: int = int(ceil(self.shoe.max_deck_count / 2))
+        self.min_decks: int = 1 #int(ceil(self.shoe.max_deck_count / 2))
     
     def deal_hands(self): 
         self.dealer.take_bets(self.players, self.minimum_bet)
@@ -129,6 +129,7 @@ class Table:
         
         #check if need to top up shoe 
         if (self.shoe.count < self.min_decks * 52): 
+            #print(self.shoe.hi_lo_count() * 100 / self.shoe.count)
             self.shoe.top_up()
         
         #take bets & deal hands 
