@@ -3,17 +3,28 @@ from random import randint
 from lib.Deck import Deck
 
 class Shoe: 
-    def __init__(self, num_decks: int): 
+    '''
+    @title Shoe
+    
+    @desc A shoe can hold a number of decks from which cards can be dealt, shuffled, 
+    and topped up. Also provides statistical data on the card counts and probabilities.
+    '''
+    def __init__(self, num_decks: int, top_up_rate: float = 0.3): 
         self.cards = []
         self.max_deck_count = num_decks
         self.add_deck(num_decks)
         self.probabilities = {}
+        self.top_up_rate = top_up_rate
         
         self.statistical_analysis()
         
     @property
     def count(self): 
         return len(self.cards)
+    
+    @property
+    def max_count(self):
+        return self.max_deck_count * 52
         
     def shuffle(self): 
         cards = []
@@ -22,6 +33,10 @@ class Shoe:
             cards.append(self.cards[r])
             self.cards.pop(r)
         self.cards = cards
+    
+    def auto_top_up(self): 
+        if (self.count < (self.max_count * self.top_up_rate)): 
+            self.top_up()
             
     def top_up(self): 
         max_count = 52 * self.max_deck_count

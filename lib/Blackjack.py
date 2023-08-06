@@ -3,6 +3,12 @@ from lib.Hand import Hand
 from math import floor, ceil
 
 class Player: 
+    '''
+    @title Player
+    
+    @desc A player consists of a hand of cards, a balance, and a decision model that 
+    defines how the player decides to take actions when prompted by the dealer.
+    '''
     def __init__(self, decision_model): 
         self.hand: Hand = Hand()
         self.decision_model: DecisionModel = decision_model
@@ -25,6 +31,12 @@ class Player:
         self.bet = 0
         
 class Dealer(Player): 
+    '''
+    @title Dealer
+    
+    @desc The dealer has a hand of cards, and the ability to play a round of blackjack
+    and assess the winners, awarding winnings and taking losses. 
+    '''
     def __init__(self): 
         super().__init__(DealerDecisionModel())
 
@@ -131,12 +143,26 @@ class Dealer(Player):
         player.bet = 0
 
 class Table: 
-    def __init__(self, dealer: Dealer, num_decks: int, minimum_bet: int = 2): 
-        self.shoe = Shoe(num_decks)
+    '''
+    @title Table 
+    
+    @desc The card table has: 
+    - a Shoe of cards 
+    - a Dealer
+    - a list of Players 
+    - a minimum bet  
+    '''
+    def __init__(
+        self, 
+        dealer: Dealer, 
+        num_decks: int, 
+        minimum_bet: int = 2, 
+        top_up_rate: float=0.3
+    ): 
+        self.shoe = Shoe(num_decks, top_up_rate=top_up_rate)
         self.dealer: Dealer = dealer
         self.players = [] #Player
         self.minimum_bet: int = minimum_bet
-        self.min_decks: int = 1 #int(ceil(self.shoe.max_deck_count / 2))
         self.on_action_callback = None
     
     def deal_hands(self): 
@@ -146,9 +172,7 @@ class Table:
     def play_round(self): 
         
         #check if need to top up shoe 
-        if (self.shoe.count < self.min_decks * 52): 
-            #print(self.shoe.hi_lo_count() * 100 / self.shoe.count)
-            self.shoe.top_up()
+        self.shoe.auto_top_up()
         
         #take bets & deal hands 
         self.deal_hands()
@@ -169,6 +193,12 @@ class Table:
             player.reset()
         
 class DecisionModel: 
+    '''
+    @title DecisionModel 
+    
+    @desc The base class for specific classes that define a blackjack strategy, 
+    defining decision-making processes for actions like betting and hit/stand. 
+    '''
     def __init__(self): 
         pass
 
@@ -196,6 +226,12 @@ class DecisionModel:
         return players[player_index].hand
         
 class DealerDecisionModel(DecisionModel): 
+    '''
+    @title DealerDecisionModel 
+    
+    @desc The base class for specific classes that define a blackjack strategy, 
+    defining decision-making processes for actions like betting and hit/stand. 
+    '''
     def __init__(self): 
         super().__init__()
 
