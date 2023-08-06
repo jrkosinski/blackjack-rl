@@ -237,7 +237,7 @@ class FixedWithCardCounting(DecisionModel):
         super().__init__()
 
     def decide_bet(self, dealer: Dealer, shoe: Shoe, players, player_index: int, minimum_bet: int = 1):
-        count = 100 * shoe.hi_lo_count()/shoe.count
+        count = 100 * shoe.hi_lo_count/shoe.count
         if (count > 3.6): 
             if (count > 10): 
                 return minimum_bet * 3
@@ -248,7 +248,7 @@ class FixedWithCardCounting(DecisionModel):
     def decide_hit(self, dealer: Dealer, shoe: Shoe, players, player_index: int):
         #list of actions based on dealer's showing card 
         table = _fixed_strategy_table[dealer.showing]
-        count = 100 * shoe.hi_lo_count()/shoe.count
+        count = 100 * shoe.hi_lo_count/shoe.count
 
         #list of actions based on soft or hard player hand
         hand = self._get_hand(dealer, players, player_index)

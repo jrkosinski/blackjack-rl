@@ -6,7 +6,11 @@ from lib.Hand import Hand
 from lib.Blackjack import Dealer, DecisionModel
 
 class QDecisionModel(DecisionModel): 
-    def __init__(self, model): 
+    def __init__(
+        self, 
+        model, 
+        use_counts: bool = False
+    ): 
         super().__init__()
         self.model = model
 
@@ -22,6 +26,9 @@ class QDecisionModel(DecisionModel):
             players[player_index].hand.total,
             soft_ace_count
         ]
+        
+        if (self.use_counts): 
+            state.append(100 * shoe.hi_lo_count/shoe.count)
              
         state_tensor = tf.convert_to_tensor(state)
         state_tensor = tf.expand_dims(state_tensor, 0)
