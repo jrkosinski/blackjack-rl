@@ -94,27 +94,30 @@ class TestShoe(unittest.TestCase):
     def test_hi_lo_count(self): 
         shoe = Shoe(5)
 
-        self.assertEqual(shoe.hi_lo_count(), 0)
+        self.assertEqual(shoe.hi_lo_count, 0)
         
         #remove a 2 
         shoe.cards.remove(2)
+        shoe._calculate_hi_lo()
         
-        self.assertTrue(shoe.hi_lo_count() > 0)
+        self.assertTrue(shoe.hi_lo_count > 0)
         
         #remove 2 10s 
         shoe.cards.remove(10)
         shoe.cards.remove(10)
+        shoe._calculate_hi_lo()
         
-        self.assertTrue(shoe.hi_lo_count() < 0)
+        self.assertTrue(shoe.hi_lo_count < 0)
 
         #assure that removing an 8 has no effect 
-        precount = shoe.hi_lo_count()
+        precount = shoe.hi_lo_count
         
         shoe.cards.remove(7)
         shoe.cards.remove(8)
         shoe.cards.remove(9)
+        shoe._calculate_hi_lo()
 
-        postcount = shoe.hi_lo_count()
+        postcount = shoe.hi_lo_count
         self.assertEqual(postcount, precount)
 
 if __name__ == '__main__':

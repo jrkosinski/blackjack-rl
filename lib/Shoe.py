@@ -15,6 +15,7 @@ class Shoe:
         self.add_deck(num_decks)
         self.probabilities = {}
         self.top_up_rate = top_up_rate
+        self._hi_lo_count = None
         
         self.statistical_analysis()
         
@@ -26,6 +27,13 @@ class Shoe:
     def max_count(self):
         return self.max_deck_count * 52
         
+    @property
+    def hi_lo_count(self) -> int: 
+        if (self._hi_lo_count is None): 
+            self._calculate_hi_lo()
+            
+        return self._hi_lo_count
+
     def shuffle(self): 
         cards = []
         while(self.count > 0): 
@@ -45,11 +53,23 @@ class Shoe:
         
         if (deck_count > 0):
             self.add_deck(count=deck_count, shuffle=True)
+            
+            #reset hi_lo count 
+            self._hi_lo_count = None
         
     def deal_card(self) -> int: 
         if (self.count > 0): 
             card = self.cards[0]
             self.cards.pop(0)
+            
+            if (self._hi_lo_count is None):
+                self._calculate_hi_lo()
+            
+            #adjust the count 
+            if (card <= 6): 
+                self._hi_lo_count += 1
+            elif (card >= 10): 
+                self._hi_lo_count -= 1
             return card
         
         return None
@@ -79,17 +99,6 @@ class Shoe:
             prob += self.probabilities[i]
         return prob
     
-    def hi_lo_count(self) -> int: 
-        count = 0
-
-        for c in self.cards: 
-            if (c <= 6): 
-                count -= 1
-            elif (c >= 10): 
-                count += 1
-                
-        return count
-
     def statistical_analysis(self): 
         counts = {}
         self.probabilities = {}
@@ -119,3 +128,13 @@ class Shoe:
         summ = 0
         for key in self.probabilities: 
             summ += self.probabilities[key]
+            
+    def _calculate_hi_lo(self):
+        count = 0
+
+        for c in self.cards: 
+            if (c <= 6): 
+                count -= 1
+            elif (c >= 10): 
+                count += 1
+        self._hi_lo_count = count
