@@ -1,0 +1,11 @@
+Model specs: 
+
+state: showing, playerhand, softace count (not normalized) 
+action output: hit/stand 
+batch size: 32
+gamma: 0.7
+layers: 
+	LayerSpec(size=12, activation='relu'),
+	LayerSpec(size=32, activation='relu'),
+	LayerSpec(size=64, activation='relu'),
+	LayerSpec(size=32, activation='relu')
