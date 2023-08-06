@@ -3,6 +3,11 @@ from typing import Any
 
 
 class Hand: 
+    '''
+    @title Hand
+    
+    @desc Encapsulates any blackjack hand of cards, including the dealer's hand.
+    '''
     def __init__(self):
         self.cards = []
 

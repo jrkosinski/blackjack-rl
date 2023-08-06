@@ -1,5 +1,11 @@
 
 class Deck: 
+    '''
+    @title Deck
+    
+    @desc A 52-card deck of integer values that represent cards. Aces are 11 by 
+    default. All face cards are 10. 
+    '''
     def __init__(self): 
         self.cards = []
         
