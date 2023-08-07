@@ -1,5 +1,5 @@
-from ..Shoe import Shoe
-from ..Blackjack import Dealer, DecisionModel
+from ..blackjack.Shoe import Shoe
+from ..blackjack import Dealer, DecisionModel
 from random import randint
 
 class RandomStrategy(DecisionModel): 

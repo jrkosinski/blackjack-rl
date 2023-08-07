@@ -1,8 +1,8 @@
 import tensorflow as tf
 import numpy as np
 
-from ..Shoe import Shoe
-from ..Blackjack import Dealer, DecisionModel
+from ..blackjack.Shoe import Shoe
+from ..blackjack import Dealer, DecisionModel
 
 class QDecisionModel(DecisionModel): 
     def __init__(
