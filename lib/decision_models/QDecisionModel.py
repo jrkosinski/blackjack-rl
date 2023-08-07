@@ -9,10 +9,11 @@ class QDecisionModel(DecisionModel):
     def __init__(
         self, 
         model, 
-        use_counts: bool = False
+        use_hi_lo_count: bool = False
     ): 
         super().__init__()
         self.model = model
+        self.use_hi_lo_count = use_hi_lo_count
 
     def decide_hit(self, dealer: Dealer, shoe: Shoe, players, player_index: int):
         
@@ -27,7 +28,7 @@ class QDecisionModel(DecisionModel):
             soft_ace_count
         ]
         
-        if (self.use_counts): 
+        if (self.use_hi_lo_count): 
             state.append(100 * shoe.hi_lo_count/shoe.count)
              
         state_tensor = tf.convert_to_tensor(state)
