@@ -1,6 +1,5 @@
-from lib.Shoe import Shoe
-from lib.Hand import Hand 
-from lib.Blackjack import Dealer, DecisionModel
+from ..Shoe import Shoe
+from ..Blackjack import Dealer, DecisionModel
 
 '''
 First dimension is the dealer's showing card, second is whether the player's hand

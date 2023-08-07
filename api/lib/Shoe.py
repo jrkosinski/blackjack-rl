@@ -1,6 +1,6 @@
 from math import floor
 from random import randint
-from lib.Deck import Deck
+from .Deck import Deck
 
 class Shoe: 
     '''

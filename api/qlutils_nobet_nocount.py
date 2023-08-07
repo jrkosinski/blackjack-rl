@@ -7,9 +7,10 @@ from lib.Blackjack import Table, Dealer, Player, Shoe, DecisionModel
 
 #TODO: should be hyperparams
 NORMALIZE_STATE = False 
+USE_HI_LO_COUNT = False
 
 #TODO: this get_current_state method could be passed in 
-def get_current_state(dealer, player, shoe, use_hi_lo_count: bool  = False, normalize: bool= False): 
+def get_current_state(dealer, player, shoe): 
     soft_ace_count = player.hand.soft_ace_count
     if (soft_ace_count > 2): 
         soft_ace_count = 2
@@ -20,10 +21,10 @@ def get_current_state(dealer, player, shoe, use_hi_lo_count: bool  = False, norm
         soft_ace_count
     ]
     
-    if (use_hi_lo_count): 
+    if (USE_HI_LO_COUNT): 
         state.append(100*shoe.hi_lo_count/shoe.count)
     
-    if (normalize): 
+    if (NORMALIZE_STATE): 
         state[0] = (state[0] - 2) / (11 - 2)
         state[1] = (state[1] - 2) / (21 - 2)
         state[2] = (state[1] - 0) / (2 - 0)
@@ -31,7 +32,7 @@ def get_current_state(dealer, player, shoe, use_hi_lo_count: bool  = False, norm
     
     return state
 
-
+    
 class ReplayBuffer:
     def __init__(self, capacity):
         self.capacity = capacity
@@ -56,7 +57,7 @@ class LayerSpec:
     def __init__(self, size: int, activation: str): 
         self.size = size
         self.activation = activation
-
+        
 class DQNAgent: 
     def __init__(
         self, 
@@ -133,13 +134,11 @@ class DQNAgent:
         self.model = tf.keras.models.load_model("model/model_saved")
         
 class QLearningDecisionModel(DecisionModel): 
-    def __init__(self, agent: DQNAgent, use_hi_lo_count: bool = False, normalize_state: bool= False): 
+    def __init__(self, agent: DQNAgent): 
         self.agent = agent
-        self.use_hi_lo_count = use_hi_lo_count
-        self.normalize_state = normalize_state
-    
+        
     def decide_hit(self, dealer: Dealer, shoe: Shoe, players, player_index: int):
-        return self.agent.get_action(get_current_state(dealer, players[player_index], shoe, self.use_hi_lo_count, self.normalize_state))
+        return self.agent.get_action(get_current_state(dealer, players[player_index], shoe))
 
 class TrainingEpisode: 
     def __init__(
@@ -149,34 +148,30 @@ class TrainingEpisode:
         gamma: float, 
         agent: DQNAgent,
         update_freq: int = 5, 
-        top_up_rate: float = 0.3, 
-        use_hi_lo_count: bool = False,
-        normalize_state: bool = False
+        top_up_rate: float = 0.3
     ): 
         self.agent = agent
         self.batch_size = batch_size
-        self.player = Player(QLearningDecisionModel(agent, use_hi_lo_count, normalize_state))
+        self.player = Player(QLearningDecisionModel(agent))
         self.table = Table(Dealer(), num_decks=num_decks, top_up_rate=top_up_rate)
         self.table.add_player(self.player)
         self.prev_state = None
         self.gamma = gamma
         self.iteration_count = 0
         self.update_freq = update_freq
-        self.use_hi_lo_count = use_hi_lo_count
-        self.normalize_state = normalize_state
         
     def run(self): 
         
         #check if need to top up shoe 
         self.table.shoe.auto_top_up()
-
+            
         self.table.deal_hands()
-
-        self.prev_state = get_current_state(self.table.dealer, self.player, self.table.shoe, self.use_hi_lo_count, self.normalize_state)
+        
+        self.prev_state = get_current_state(self.table.dealer, self.player, self.table.shoe)
         player_start_balance = self.player.balance
-
+        
         def on_game_action(player: Player, done: bool): 
-            next_state = get_current_state(self.table.dealer, self.player, self.table.shoe, self.use_hi_lo_count, self.normalize_state)
+            next_state = get_current_state(self.table.dealer, self.player, self.table.shoe)
             reward = player.balance - player_start_balance
             self.agent.replay_buffer.push(self.prev_state, player.last_action, reward, next_state, done)
             self.prev_state = next_state
@@ -201,10 +196,10 @@ class Trainer:
         gamma: float = 0.5,
         layer_specs = None, 
         update_freq: int = 5, 
+        state_size: int = 3, 
+        action_size: int = 2, 
         num_decks: int = 120, 
-        top_up_rate: float = 0.3, 
-        use_hi_lo_count: bool = False, 
-        normalize_state: bool = False
+        top_up_rate: float = 0.3
         
     ): 
         self.num_episodes = num_episodes_per_epoch
@@ -213,12 +208,10 @@ class Trainer:
         self.layer_specs = layer_specs
         self.gamma = gamma
         self.update_freq = update_freq
-        self.state_size = 3 if not use_hi_lo_count else 4
-        self.action_size = 2
+        self.state_size = state_size
+        self.action_size = action_size
         self.num_decks = num_decks
         self.top_up_rate = top_up_rate
-        self.use_hi_lo_count = use_hi_lo_count
-        self.normalize_state = normalize_state
 
         #decaying epsilon
         self.start_epsilon = start_epsilon
@@ -251,9 +244,7 @@ class Trainer:
                 gamma=self.gamma,
                 update_freq=self.update_freq,
                 agent=agent, 
-                top_up_rate=self.top_up_rate, 
-                use_hi_lo_count=self.use_hi_lo_count, 
-                normalize_state=self.normalize_state
+                top_up_rate=self.top_up_rate
             )
 
             # Training loop
@@ -264,6 +255,7 @@ class Trainer:
                 if episode < epsilon_decay_duration:
                     agent.update_epsilon(self.end_epsilon + (self.start_epsilon - self.end_epsilon) * ((epsilon_decay_duration - episode) / epsilon_decay_duration))
 
+            
             prev = 0
             if (len(results) > 0): 
                 prev = results[len(results)-1]

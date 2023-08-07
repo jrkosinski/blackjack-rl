@@ -1,6 +1,5 @@
-from lib.Shoe import Shoe
-from lib.Hand import Hand 
-from lib.Blackjack import Dealer, DecisionModel
+from ..Shoe import Shoe
+from ..Blackjack import Dealer, DecisionModel
 from random import randint
 
 class RandomStrategy(DecisionModel): 

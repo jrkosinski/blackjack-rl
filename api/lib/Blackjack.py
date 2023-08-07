@@ -1,5 +1,5 @@
-from lib.Shoe import Shoe
-from lib.Hand import Hand 
+from .Shoe import Shoe
+from .Hand import Hand 
 from math import floor, ceil
 
 class Player: 

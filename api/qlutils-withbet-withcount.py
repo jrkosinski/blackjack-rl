@@ -8,7 +8,7 @@ from lib.Blackjack import Table, Dealer, Player, Shoe, DecisionModel
 
 #TODO: should be hyperparams
 NORMALIZE_STATE = False 
-USE_HI_LO_COUNT = False
+USE_HI_LO_COUNT = True
 
 #TODO: this get_current_state method could be passed in 
 def get_current_state(dealer, player, shoe): 
@@ -33,7 +33,7 @@ def get_current_state(dealer, player, shoe):
     
     return state
 
-    
+
 class ReplayBuffer:
     def __init__(self, capacity):
         self.capacity = capacity
@@ -58,7 +58,7 @@ class LayerSpec:
     def __init__(self, size: int, activation: str): 
         self.size = size
         self.activation = activation
-        
+
 class DQNAgent: 
     def __init__(
         self, 
@@ -133,7 +133,7 @@ class DQNAgent:
         
     def load_saved_model(self): 
         self.model = tf.keras.models.load_model("model/model_saved")
-        
+
 class QLearningDecisionModel(DecisionModel): 
     def __init__(self, agent: DQNAgent): 
         self.agent = agent
@@ -288,4 +288,3 @@ class Trainer:
             'averages': averages, 
             'super_averages': super_averages
         }
-        
