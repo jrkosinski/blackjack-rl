@@ -5,29 +5,6 @@ from matplotlib import pyplot as plt
 
 from api.lib.blackjack import Table, Dealer, Player, Shoe, DecisionModel
 
-def get_current_state(dealer, player, shoe, use_hi_lo_count: bool  = False, normalize: bool= False): 
-    soft_ace_count = player.hand.soft_ace_count
-    if (soft_ace_count > 2): 
-        soft_ace_count = 2
-            
-    state = [
-        dealer.showing, 
-        player.hand.total,
-        soft_ace_count
-    ]
-    
-    if (use_hi_lo_count): 
-        state.append(100*shoe.hi_lo_count/shoe.count)
-    
-    if (normalize): 
-        state[0] = (state[0] - 2) / (11 - 2)
-        state[1] = (state[1] - 2) / (21 - 2)
-        state[2] = (state[1] - 0) / (2 - 0)
-        #TODO: normalize hi-lo count 
-    
-    return state
-
-
 class QPolicy: 
     def __init__(
         self, 
@@ -74,7 +51,7 @@ class QPolicy:
     
     def update_epsilon(self, epsilon):
         self.epsilon = epsilon
-        
+       
     def update_model(self, batch_size, gamma=0.5):
         if len(self.replay_buffer) < batch_size:
             return
@@ -107,16 +84,45 @@ class QPolicy:
         
     def load_saved_model(self): 
         self.model = tf.keras.models.load_model("model/model_saved")
-        
+
 class QLearningDecisionModel(DecisionModel): 
-    def __init__(self, policy: QPolicy, use_hi_lo_count: bool = False, normalize_state: bool= False): 
-        self.policy = policy
+    def __init__(
+        self, 
+        use_hi_lo_count: bool = False, 
+        normalize_state: bool= False
+    ): 
         self.use_hi_lo_count = use_hi_lo_count
         self.normalize_state = normalize_state
-    
+        self.policy = {}
+        
+        #initialize policy to all False 
+        for showing in range(1, 12): 
+            self.policy[showing] = { }
+            for ace_count in range(0, 4): 
+                self.policy[showing][ace_count] = { }
+                for p_hand in range(2, 21): 
+                    self.policy[showing][ace_count][p_hand] = False
+        
+    def update_policy(self, state, value: bool): 
+        showing = state[0]
+        p_hand = state[1]
+        ace_count = state[2]
+        
+        if (ace_count > 3): 
+            ace_count = 3
+        
+        self.policy[showing][ace_count][p_hand] = value
+        
     def decide_hit(self, dealer: Dealer, shoe: Shoe, players, player_index: int):
-        return self.policy.get_action(get_current_state(dealer, players[player_index], shoe, self.use_hi_lo_count, self.normalize_state))
-
+        showing = dealer.showing
+        player = players[player_index]
+        ace_count = player.hand.soft_ace_count
+        if (ace_count > 3): 
+            ace_count = 3
+        
+        p_hand = player.hand.total
+        return self.policy[showing][ace_count][p_hand]
+    
 class TrainingEpisode: 
     def __init__(
         self, 
@@ -124,6 +130,7 @@ class TrainingEpisode:
         num_decks: int, 
         gamma: float, 
         policy: QPolicy,
+        num_games: int = 1000,
         update_freq: int = 5, 
         top_up_rate: float = 0.3, 
         use_hi_lo_count: bool = False,
@@ -140,37 +147,31 @@ class TrainingEpisode:
         self.update_freq = update_freq
         self.use_hi_lo_count = use_hi_lo_count
         self.normalize_state = normalize_state
+        self.num_games = num_games
         
+    def update_player_policy(self): 
+        self.policy.get_action()
+    
     def run(self): 
         
-        #check if need to top up shoe 
-        self.table.shoe.auto_top_up()
-
-        self.table.deal_hands()
-
-        self.prev_state = get_current_state(self.table.dealer, self.player, self.table.shoe, self.use_hi_lo_count, self.normalize_state)
-        player_start_balance = self.player.balance
-
-        def on_game_action(player: Player, done: bool): 
-            next_state = get_current_state(self.table.dealer, self.player, self.table.shoe, self.use_hi_lo_count, self.normalize_state)
-            reward = player.balance - player_start_balance
-            self.policy.replay_buffer.push(self.prev_state, player.last_action, reward, next_state, done)
-            self.prev_state = next_state
-            
-            if self.iteration_count % self.update_freq == 0: 
-                self.policy.update_model(self.batch_size, self.gamma)
-            
-            self.iteration_count += 1
-            
-        self.table.on_action(on_game_action)
-        self.table.dealer.play_round(self.table.shoe, self.table.players, on_game_action)
-        self.table.dealer.assess_winners(self.table.players, on_game_action)
-
+        #fill player policy with values 
+        self.update_player_policy()
+        
+        for i in range(self.num_games): 
+        
+            #check if need to top up shoe 
+            self.table.shoe.auto_top_up()
+        
+            #deal initial hands 
+            self.table.deal_hands()
+            self.table.play_round()
+    
+        reward = self.player.balance
+        
 class Trainer: 
     def __init__(
         self, 
-        num_episodes_per_epoch: int, 
-        num_epochs: int, 
+        num_episodes: int, 
         batch_size: int = 64,
         start_epsilon: float = 1.0,
         end_epsilon: float = 0.01,
@@ -178,13 +179,11 @@ class Trainer:
         layer_specs = None, 
         update_freq: int = 5, 
         num_decks: int = 120, 
-        top_up_rate: float = 0.3, 
+        top_up_rate: float = 0.3,
         use_hi_lo_count: bool = False, 
-        normalize_state: bool = False,
         report_interval: int = 100
     ): 
-        self.num_episodes = num_episodes_per_epoch
-        self.num_epochs = num_epochs
+        self.num_episodes = num_episodes
         self.batch_size = batch_size
         self.layer_specs = layer_specs
         self.gamma = gamma
@@ -193,20 +192,19 @@ class Trainer:
         self.action_size = 2
         self.num_decks = num_decks
         self.top_up_rate = top_up_rate
-        self.use_hi_lo_count = use_hi_lo_count
-        self.normalize_state = normalize_state
         self.report_interval = report_interval
+        self.use_hi_lo_count = use_hi_lo_count
 
         #decaying epsilon
         self.start_epsilon = start_epsilon
         self.end_epsilon = end_epsilon
-    
+        
     def train(
         self,
         load_from_file: bool = False, 
         save_to_file: bool = False
     ): 
-        epsilon_decay_duration = (self.num_episodes * self.num_epochs) // 2
+        epsilon_decay_duration = (self.num_episodes) // 2
         policy = QPolicy(
             state_size=self.state_size, 
             action_size=self.action_size, 
@@ -220,8 +218,8 @@ class Trainer:
         results = []
         averages = []
         super_averages = []
-
-        for epoch in range (self.num_epochs): 
+        
+        for episode in range (self.num_episodes): 
             train = TrainingEpisode(
                 num_decks=self.num_decks,
                 batch_size=self.batch_size, 
@@ -234,12 +232,11 @@ class Trainer:
             )
 
             # Training loop
-            for episode in range(self.num_episodes):
-                train.run()
+            train.run()
                 
-                # Decay epsilon
-                if episode < epsilon_decay_duration:
-                    policy.update_epsilon(self.end_epsilon + (self.start_epsilon - self.end_epsilon) * ((epsilon_decay_duration - episode) / epsilon_decay_duration))
+            # Decay epsilon
+            if episode < epsilon_decay_duration:
+                policy.update_epsilon(self.end_epsilon + (self.start_epsilon - self.end_epsilon) * ((epsilon_decay_duration - episode) / epsilon_decay_duration))
 
             prev = 0
             if (len(results) > 0): 
@@ -248,10 +245,10 @@ class Trainer:
             results.append(train.player.balance + prev)
             averages.append(train.player.balance / self.num_episodes)
             
-            if (epoch > 0 and epoch % self.report_interval == 0):
-                super_averages.append(sum(averages[-self.num_episodes:])/self.num_episodes)
+            if (episode > 0 and episode % self.report_interval == 0):
+                super_averages.append(sum(averages[-self.report_interval:])/self.report_interval)
                 
-                print(f'epoch {epoch}...')
+                print(f'epoch {episode}...')
                 print('results')
                 plt.plot(results)
                 plt.show()
@@ -272,3 +269,4 @@ class Trainer:
             'averages': averages, 
             'super_averages': super_averages
         }
+        

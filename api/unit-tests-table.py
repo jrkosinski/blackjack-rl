@@ -1,4 +1,4 @@
-from lib.Blackjack import Dealer, DealerDecisionModel, Table, Player
+from lib.blackjack import Dealer, DealerDecisionModel, Table, Player
 
 import unittest
 

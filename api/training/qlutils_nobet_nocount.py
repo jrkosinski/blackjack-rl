@@ -3,7 +3,7 @@ import tensorflow as tf
 import random
 from matplotlib import pyplot as plt
 
-from lib.Blackjack import Table, Dealer, Player, Shoe, DecisionModel
+from ..api.lib.blackjack import Table, Dealer, Player, Shoe, DecisionModel
 
 #TODO: should be hyperparams
 NORMALIZE_STATE = False 
@@ -58,7 +58,7 @@ class LayerSpec:
         self.size = size
         self.activation = activation
         
-class DQNAgent: 
+class QPolicy: 
     def __init__(
         self, 
         state_size, 
@@ -134,7 +134,7 @@ class DQNAgent:
         self.model = tf.keras.models.load_model("model/model_saved")
         
 class QLearningDecisionModel(DecisionModel): 
-    def __init__(self, agent: DQNAgent): 
+    def __init__(self, agent: QPolicy): 
         self.agent = agent
         
     def decide_hit(self, dealer: Dealer, shoe: Shoe, players, player_index: int):
@@ -146,7 +146,7 @@ class TrainingEpisode:
         batch_size: int, 
         num_decks: int, 
         gamma: float, 
-        agent: DQNAgent,
+        agent: QPolicy,
         update_freq: int = 5, 
         top_up_rate: float = 0.3
     ): 
@@ -223,7 +223,7 @@ class Trainer:
         save_to_file: bool = False
     ): 
         epsilon_decay_duration = (self.num_episodes * self.num_epochs) // 2
-        agent = DQNAgent(
+        agent = QPolicy(
             state_size=self.state_size, 
             action_size=self.action_size, 
             epsilon=self.start_epsilon, 

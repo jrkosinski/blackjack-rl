@@ -1,4 +1,4 @@
-from lib.Deck import Deck
+from lib.blackjack.Deck import Deck
 
 import unittest
 

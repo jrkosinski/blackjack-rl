@@ -1,4 +1,4 @@
-from lib.Shoe import Shoe
+from lib.blackjack.Shoe import Shoe
 
 import unittest
 

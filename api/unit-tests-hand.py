@@ -1,4 +1,4 @@
-from lib.Hand import Hand
+from lib.blackjack.Hand import Hand
 
 import unittest
 
