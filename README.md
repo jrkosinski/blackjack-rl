@@ -1,4 +1,4 @@
-# Readme
+# Blackjack-RL: A Reinforcement Learning Exercise for Blackjack
 
 ## Phase 0
 Test against various baseline decision models as benchmarks 
